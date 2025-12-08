@@ -1,5 +1,7 @@
 package com.betoniarka.biblioteka.appuser;
 
+import jakarta.validation.Valid;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -10,24 +12,28 @@ public class AppUserController {
 
     private final AppUserService service;
 
-    public AppUserController(AppUserService service) {
+    public AppUserController(AppUserService service, PasswordEncoder passwordEncoder) {
         this.service = service;
     }
 
     @GetMapping
-    public List<AppUserDto> getAppUsers() {
-        return service.getAll().stream().map(appUser ->
-           new AppUserDto(
-                   appUser.getAppUserId(),
-                   appUser.getEmail(),
-                   appUser.getFirstname(),
-                   appUser.getLastname())
-        ).toList();
+    public List<UserResponseDto> getAppUsers() {
+        return service.getAll().stream().map(service::toDto).toList();
     }
 
     @PostMapping
-    public void createAppUser(@RequestBody AppUser appUser) {
-        service.create(appUser);
+    public void createAppUser(@Valid @RequestBody UserCreateRequestDto requestDto) {
+        service.create(requestDto);
+    }
+
+    @PutMapping
+    public void updateAppUser(@Valid @RequestBody UserUpdateAppUserDto requestDto) {
+        service.update(requestDto);
+    }
+
+    @DeleteMapping
+    public void deleteAppUser(@Valid @RequestBody Long id) {
+        service.delete(id);
     }
 
 }
