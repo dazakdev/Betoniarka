@@ -22,7 +22,7 @@ public class QueueEntry {
     @Getter
     @Setter
     @Column
-    @NotNull(message = "timestamp is required")
+    @NotNull(message = "borrowedAt is required")
     private Instant timestamp;
 
     @Getter
