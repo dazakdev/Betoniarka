@@ -6,6 +6,7 @@ import com.betoniarka.biblioteka.appuser.dto.AppUserResponseDto;
 import com.betoniarka.biblioteka.appuser.dto.AppUserUpdateDto;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -57,6 +58,7 @@ public class AppUserController {
     }
 
     @DeleteMapping(path = "/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteAppUser(@PathVariable Long id) {
         service.deleteById(id);
     }
@@ -70,6 +72,7 @@ public class AppUserController {
     }
 
     @DeleteMapping(path = "/me")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteMe(@AuthenticationPrincipal UserDetails principal) {
         service.deleteByUsername(principal.getUsername());
     }
