@@ -3,6 +3,7 @@ package com.betoniarka.biblioteka.appuser;
 import com.betoniarka.biblioteka.book.Book;
 import com.betoniarka.biblioteka.borrow.Borrow;
 import com.betoniarka.biblioteka.exceptions.ResourceConflictException;
+import com.betoniarka.biblioteka.exceptions.ResourceNotFoundException;
 import com.betoniarka.biblioteka.queueentry.QueueEntry;
 import com.betoniarka.biblioteka.review.Review;
 import jakarta.persistence.*;
@@ -103,6 +104,54 @@ public class AppUser {
 
     public List<Borrow> getCurrentBorrows() {
         return this.borrows.stream().filter(b -> !b.isReturned()).toList();
+    }
+
+    /**
+     * Adds a review for a book.
+     * <p>
+     * Checks that the user has borrowed the book and hasn't already reviewed it.
+     *
+     * @param review the review to add
+     * @param book the book being reviewed
+     * @throws ResourceConflictException if the user hasn't borrowed the book
+     *         or has already reviewed it
+     */
+    public void addReview(Review review, Book book) {
+
+        boolean hasBorrowed = borrows.stream().anyMatch(userBorrow -> userBorrow.getBook().equals(book));
+        if (!hasBorrowed) {
+            throw new ResourceConflictException(
+                    "User '%d' hasn't borrowed book '%d'".formatted(this.id, book.getId())
+            );
+        }
+
+        boolean reviewAlreadyExists = reviews.stream().anyMatch(userReview -> userReview.getBook().equals(book));
+        if (reviewAlreadyExists) {
+            throw new ResourceConflictException(
+                    "User '%d' has already reviewed book '%d'".formatted(this.id, book.getId())
+            );
+        }
+
+        review.setAppUser(this);
+        review.setBook(book);
+        this.reviews.add(review);
+
+    }
+
+    /**
+     * Deletes a review from the user's list.
+     *
+     * @param review the review to delete
+     * @throws IllegalStateException if the review belongs to another user
+     */
+    public void deleteReview(Review review) {
+
+        if (review.getAppUser() != this) {
+            throw new IllegalStateException("Review '%d' belongs to another user".formatted(review.getId()));
+        }
+
+        this.reviews.remove(review);
+
     }
 
     @Override

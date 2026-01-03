@@ -30,11 +30,13 @@ public class Review {
     private String comment;
 
     @Getter
+    @Setter
     @ManyToOne
     @JoinColumn(name = "app_user_id")
     private AppUser appUser;
 
     @Getter
+    @Setter
     @ManyToOne
     @JoinColumn(name = "book_id")
     private Book book;
