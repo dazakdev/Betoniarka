@@ -12,7 +12,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Instant;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -60,31 +59,6 @@ public class BookReportService {
 
     }
 
-    public List<MostBorrowedBookDto> getMostBorrowed(
-            int limit,
-            Instant from,
-            Instant to
-    ) {
-
-        boolean timePeriodNotSpecified = (from == null || to == null);
-
-        var bookBorrowCountMap = borrowRepository.findAll().stream()
-                                .filter(borrow -> timePeriodNotSpecified || (borrow.getBorrowedAt().isAfter(from) && borrow.getBorrowedAt().isBefore(to)))
-                                .map(Borrow::getBook)
-                                .collect(Collectors.groupingBy(book -> book, Collectors.counting()));
-
-        return bookBorrowCountMap.entrySet().stream()
-                                .sorted(Map.Entry.<Book, Long>comparingByValue().reversed())
-                                .limit(limit)
-                                .map(entry -> new MostBorrowedBookDto(
-                                        entry.getKey().getId(),
-                                        entry.getKey().getTitle(),
-                                        entry.getValue()
-                                ))
-                                .toList();
-
-    }
-
     public List<MostReviewedBookDto> getMostReviewed(int limit) {
 
         return bookRepository.findAll().stream()
@@ -118,6 +92,5 @@ public class BookReportService {
                                           .toList();
 
     }
-
 
 }

@@ -80,7 +80,7 @@ public class AppUserReportService {
                                   .map(borrow -> new AppUserWithOverdueDto(
                                           borrow.getAppUser().getId(),
                                           borrow.getAppUser().getUsername(),
-                                          borrow.getId(),
+                                          borrow.getBook().getId(),
                                           Duration.between(Instant.now(), borrow.getBorrowedAt().plus(borrow.getBorrowDuration())).toDays()
                                   ))
                                   .toList();

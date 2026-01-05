@@ -18,28 +18,18 @@ import java.util.List;
 @RequiredArgsConstructor
 public class BookReportController {
 
-    private final BookReportService bookReportService;
+    private final BookReportService service;
 
     @GetMapping("/summary")
     @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
     public ResponseEntity<BookSummaryReportDto> summary() {
-        return ResponseEntity.ok(bookReportService.getSummary());
+        return ResponseEntity.ok(service.getSummary());
     }
 
     @GetMapping("/availability")
     @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
     public ResponseEntity<List<BookAvailabilityDto>> availability() {
-        return ResponseEntity.ok(bookReportService.getAvailability());
-    }
-
-    @GetMapping("/most-borrowed")
-    @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
-    public ResponseEntity<List<MostBorrowedBookDto>> mostBorrowed(
-            @RequestParam(defaultValue = "10") int limit,
-            @RequestParam(required = false) Instant from,
-            @RequestParam(required = false) Instant to
-    ) {
-        return ResponseEntity.ok(bookReportService.getMostBorrowed(limit, from, to));
+        return ResponseEntity.ok(service.getAvailability());
     }
 
     @GetMapping("/most-reviewed")
@@ -47,7 +37,7 @@ public class BookReportController {
     public ResponseEntity<List<MostReviewedBookDto>> mostReviewed(
             @RequestParam(defaultValue = "10") int limit
     ) {
-       return ResponseEntity.ok(bookReportService.getMostReviewed(limit));
+       return ResponseEntity.ok(service.getMostReviewed(limit));
     }
 
     @GetMapping("/most-popular-categories")
@@ -55,7 +45,7 @@ public class BookReportController {
     public ResponseEntity<List<MostPopularBookCategoryDto>> mostPopularBookCategories(
             @RequestParam(defaultValue = "10") int limit
     ) {
-       return ResponseEntity.ok(bookReportService.getMostPopularCategories(limit));
+       return ResponseEntity.ok(service.getMostPopularCategories(limit));
     }
 
 }
