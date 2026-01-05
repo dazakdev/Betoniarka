@@ -3,7 +3,6 @@ package com.betoniarka.biblioteka.report.service;
 import com.betoniarka.biblioteka.appuser.AppUserRepository;
 import com.betoniarka.biblioteka.book.Book;
 import com.betoniarka.biblioteka.book.BookRepository;
-import com.betoniarka.biblioteka.borrow.Borrow;
 import com.betoniarka.biblioteka.borrow.BorrowRepository;
 import com.betoniarka.biblioteka.category.Category;
 import com.betoniarka.biblioteka.category.CategoryRepository;
@@ -29,23 +28,31 @@ public class BookReportService {
 
     public BookSummaryReportDto getSummary() {
 
-        long available = bookRepository.findAll().stream()
-                                                 .mapToLong(Book::getCount)
-                                                 .sum();
-
-        long borrowed = userRepository.findAll().stream()
-                                               .mapToLong(user -> user.getCurrentBorrows().size())
-                                               .sum();
-
+        long available = bookRepository.findAll().stream().mapToLong(Book::getCount).sum();
+        long borrowed = userRepository.findAll().stream().mapToLong(user -> user.getCurrentBorrows().size()).sum();
         long totalBooks = available + borrowed;
 
+        double availabilityProportion = ((double) available / totalBooks) * 100;
+        double borrowProportion = ((double) borrowed / totalBooks) * 100;
+
+        long neverBorrowed = bookRepository.findAll().stream().filter(book -> book.getBorrowedBy().isEmpty()).count();
+
+        long totalBorrows = borrowRepository.count();
+        long borrowPerCopy = totalBorrows / totalBooks;
+
         long totalCategories = categoryRepository.count();
+        long categoriesPerBook = totalCategories / totalBooks;
 
         return new BookSummaryReportDto(
                 totalBooks,
                 available,
                 borrowed,
-                totalCategories
+                availabilityProportion,
+                borrowProportion,
+                neverBorrowed,
+                borrowPerCopy,
+                totalCategories,
+                categoriesPerBook
         );
 
     }

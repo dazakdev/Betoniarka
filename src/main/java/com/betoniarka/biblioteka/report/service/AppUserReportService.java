@@ -60,13 +60,23 @@ public class AppUserReportService {
 
         long averageOverdueDaysPerAppUser = totalOverdueDays / totalAppUsers;
 
+        long activeAppUsersLastWeek = totalAppUsers - getDead(7).size();
+        double activityProportionLastWeek = ((double) activeAppUsersLastWeek / totalAppUsers);
+
+        long activeAppUsersLastMonth = totalAppUsers - getDead(31).size();
+        double activityProportionLastMonth = ((double) activeAppUsersLastMonth / totalAppUsers);
+
         return new AppUserSummaryReportDto(
                 totalAppUsers,
                 totalAppUsersWithBorrows,
                 totalAppUsersWithoutBorrows,
                 totalAppUsersWithOverdue,
                 averageBorrowsPerAppUser,
-                averageOverdueDaysPerAppUser
+                averageOverdueDaysPerAppUser,
+                activeAppUsersLastWeek,
+                activityProportionLastWeek,
+                activeAppUsersLastMonth,
+                activityProportionLastMonth
         );
 
     }

@@ -4,5 +4,10 @@ public record BookSummaryReportDto(
         long totalCopies,
         long availableCopies,
         long currentlyBorrowedCopies,
-        long totalCategories
+        double availabilityProportion,
+        double borrowProportion,
+        long neverBorrowedCopies,
+        long borrowsPerCopy,
+        long totalCategories,
+        long categoriesPerBook
 ) { }

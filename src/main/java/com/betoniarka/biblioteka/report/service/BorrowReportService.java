@@ -29,10 +29,7 @@ public class BorrowReportService {
         var borrowList = borrowRepository.findAll().stream().toList();
 
         long totalBorrows = borrowList.size();
-
-        long currentBorrows = borrowList.stream()
-                                        .filter(borrow -> !borrow.isReturned())
-                                        .count();
+        long currentBorrows = borrowList.stream().filter(borrow -> !borrow.isReturned()).count();
 
         long totalBorrowDurationDays = borrowList.stream()
                                                  .filter(Borrow::isReturned)
@@ -43,10 +40,17 @@ public class BorrowReportService {
 
         long averageBorrowDurationDays = totalBorrowDurationDays / userRepository.count();
 
+        long borrowsLastWeek = borrowList.stream().filter(borrow -> Duration.between(borrow.getBorrowedAt(), Instant.now()).toDays() <= 7).count();
+        long borrowsLastMonth = borrowList.stream().filter(borrow -> Duration.between(borrow.getBorrowedAt(), Instant.now()).toDays() <= 31).count();
+        long borrowsLastYear = borrowList.stream().filter(borrow -> Duration.between(borrow.getBorrowedAt(), Instant.now()).toDays() <= 365).count();
+
         return new BorrowSummaryReportDto(
                 totalBorrows,
                 currentBorrows,
-                averageBorrowDurationDays
+                averageBorrowDurationDays,
+                borrowsLastWeek,
+                borrowsLastMonth,
+                borrowsLastYear
         );
 
     }
