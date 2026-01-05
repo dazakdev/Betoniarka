@@ -135,6 +135,7 @@ public class AppUser {
         review.setAppUser(this);
         review.setBook(book);
         this.reviews.add(review);
+        book.getReviews().add(review);
 
     }
 
@@ -150,6 +151,7 @@ public class AppUser {
             throw new IllegalStateException("Review '%d' belongs to another user".formatted(review.getId()));
         }
 
+        review.getBook().getReviews().remove(review);
         this.reviews.remove(review);
 
     }
