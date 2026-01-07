@@ -5,6 +5,7 @@ import com.betoniarka.biblioteka.appuser.AppUserRole;
 import com.betoniarka.biblioteka.book.Book;
 import com.betoniarka.biblioteka.borrow.Borrow;
 import com.betoniarka.biblioteka.category.Category;
+import com.betoniarka.biblioteka.review.Review;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -53,7 +54,7 @@ class ReportServiceTestConfiguration {
         return List.of(
                 createBook(1L, "Władca Pierścieni", 3, List.of(categories.get(0))),
                 createBook(2L, "Harry Potter i Kamień Filozoficzny", 5, List.of(categories.get(0), categories.get(3))),
-                createBook(3L, "Hobbit", 2, List.of(categories.get(1))),
+                createBook(3L, "Hobbit", 2, List.of(categories.get(0))),
                 createBook(4L, "Gra o Tron", 4, List.of(categories.get(2))),
                 createBook(5L, "Lalka", 1, List.of(categories.get(4))),
                 createBook(6L, "Rok 1984", 3, List.of(categories.get(4))),
@@ -177,8 +178,6 @@ class ReportServiceTestConfiguration {
         b.setBorrowedAt(borrowedAt);
         b.setBorrowDuration(borrowDuration);
         b.setReturnedAt(returnedAt);
-        user.getBorrows().add(b);
-        book.getBorrowedBy().add(b);
         if (returnedAt == null) book.setCount(book.getCount() - 1);
         return b;
     }

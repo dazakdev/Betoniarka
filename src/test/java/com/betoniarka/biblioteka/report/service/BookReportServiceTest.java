@@ -9,6 +9,7 @@ import com.betoniarka.biblioteka.borrow.BorrowRepository;
 import com.betoniarka.biblioteka.category.Category;
 import com.betoniarka.biblioteka.category.CategoryRepository;
 import com.betoniarka.biblioteka.report.dto.BookAvailabilityDto;
+import com.betoniarka.biblioteka.report.dto.MostPopularBookCategoryDto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -59,6 +60,25 @@ public class BookReportServiceTest {
                 .hasSize(7)
                 .extracting(BookAvailabilityDto::bookId)
                 .containsExactlyInAnyOrder(1L, 2L, 3L, 4L, 6L, 7L, 8L);
+    }
+
+    @Test
+    void getMostReviewedShouldReturnBooksWithTheGreatestCountOfReviews() {
+
+    }
+
+    @Test
+    void getMostPopularCategoriesForLimitTwoShouldReturnFantasyAndForKids() {
+        int threshold = 2;
+        List<MostPopularBookCategoryDto> popularCategories = service.getMostPopularCategories(2);
+        assertThat(popularCategories)
+                .extracting(MostPopularBookCategoryDto::categoryName)
+                .contains("Fantastyka");
+        assertThat(popularCategories)
+                .anyMatch(dto ->
+                        dto.categoryName().equals("Dramat") ||
+                        dto.categoryName().equals("Dla dzieci")
+                );
     }
 
 }
