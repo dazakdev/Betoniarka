@@ -8,6 +8,8 @@ import com.betoniarka.biblioteka.report.dto.AppUserSummaryReportDto;
 import com.betoniarka.biblioteka.report.dto.AppUserWithOverdueDto;
 import com.betoniarka.biblioteka.report.dto.DeadAppUserAccountDto;
 import com.betoniarka.biblioteka.report.dto.MostActiveAppUserDto;
+
+import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Comparator;
@@ -23,6 +25,7 @@ public class AppUserReportService {
 
   private final AppUserRepository userRepository;
   private final BorrowRepository borrowRepository;
+  private final Clock clock;
 
   public AppUserSummaryReportDto getSummary() {
 
@@ -43,7 +46,7 @@ public class AppUserReportService {
                     if (borrow
                         .getBorrowedAt()
                         .plus(borrow.getBorrowDuration())
-                        .isBefore(Instant.now())) return true;
+                        .isBefore(Instant.now(clock))) return true;
                   }
                   return false;
                 })
@@ -93,7 +96,7 @@ public class AppUserReportService {
             borrow ->
                 borrow.isReturned()
                     && Duration.between(
-                            Instant.now(), borrow.getBorrowedAt().plus(borrow.getBorrowDuration()))
+                            Instant.now(clock), borrow.getBorrowedAt().plus(borrow.getBorrowDuration()))
                         .isPositive())
         .map(
             borrow ->
@@ -102,7 +105,7 @@ public class AppUserReportService {
                     borrow.getAppUser().getUsername(),
                     borrow.getBook().getId(),
                     Duration.between(
-                            Instant.now(), borrow.getBorrowedAt().plus(borrow.getBorrowDuration()))
+                            Instant.now(clock), borrow.getBorrowedAt().plus(borrow.getBorrowDuration()))
                         .toDays()))
         .toList();
   }
@@ -125,7 +128,7 @@ public class AppUserReportService {
         .filter(
             user ->
                 user.getCurrentBorrows().isEmpty()
-                    && Duration.between(user.getBorrows().getLast().getReturnedAt(), Instant.now())
+                    && Duration.between(user.getBorrows().getLast().getReturnedAt(), Instant.now(clock))
                             .toDays()
                         >= days)
         .map(
@@ -133,7 +136,7 @@ public class AppUserReportService {
                 new DeadAppUserAccountDto(
                     user.getId(),
                     user.getUsername(),
-                    Duration.between(user.getBorrows().getLast().getReturnedAt(), Instant.now())
+                    Duration.between(user.getBorrows().getLast().getReturnedAt(), Instant.now(clock))
                         .toDays()))
         .toList();
   }
