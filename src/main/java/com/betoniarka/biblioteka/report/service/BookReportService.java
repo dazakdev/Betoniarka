@@ -23,7 +23,6 @@ public class BookReportService {
   private final AppUserRepository userRepository;
   private final BookRepository bookRepository;
   private final BorrowRepository borrowRepository;
-  private final CategoryRepository categoryRepository;
 
   public BookSummaryReportDto getSummary() {
 
@@ -41,7 +40,7 @@ public class BookReportService {
     long totalBorrows = borrowRepository.count();
     long borrowPerCopy = totalBorrows / totalBooks;
 
-    long totalCategories = categoryRepository.count();
+    long totalCategories = bookRepository.findAll().stream().mapToLong(book -> book.getCategories().size()).sum();
     long categoriesPerBook = totalCategories / totalBooks;
 
     return new BookSummaryReportDto(

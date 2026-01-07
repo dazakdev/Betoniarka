@@ -42,7 +42,15 @@ class ReportServiceTestConfiguration {
                 createCategory(2L, "Kryminał"),
                 createCategory(3L, "Science-Fiction"),
                 createCategory(4L, "Dla dzieci"),
-                createCategory(5L, "Dramat")
+                createCategory(5L, "Dramat"),
+                createCategory(6L, "Komedia"),
+                createCategory(7L, "Dla dorosłych"),
+                createCategory(8L, "Nauka"),
+                createCategory(9L, "Zdrowie"),
+                createCategory(10L, "Plastyka"),
+                createCategory(11L, "Muzyka"),
+                createCategory(12L, "Historia"),
+                createCategory(13L, "Biografia")
         );
     }
 
