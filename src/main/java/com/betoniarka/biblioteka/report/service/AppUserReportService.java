@@ -137,8 +137,8 @@ public class AppUserReportService {
                 new DeadAppUserAccountDto(
                     user.getId(),
                     user.getUsername(),
-                    Duration.between(user.getBorrows().getLast().getReturnedAt(), Instant.now(clock))
-                        .toDays()))
+                    Math.abs(Duration.between(user.getBorrows().getLast().getReturnedAt(), Instant.now(clock))
+                        .toDays())))
         .toList();
   }
 }

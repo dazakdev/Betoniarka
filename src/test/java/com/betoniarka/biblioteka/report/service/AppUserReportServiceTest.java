@@ -2,10 +2,10 @@ package com.betoniarka.biblioteka.report.service;
 
 import com.betoniarka.biblioteka.appuser.AppUser;
 import com.betoniarka.biblioteka.appuser.AppUserRepository;
-import com.betoniarka.biblioteka.book.Book;
 import com.betoniarka.biblioteka.borrow.Borrow;
 import com.betoniarka.biblioteka.borrow.BorrowRepository;
 import com.betoniarka.biblioteka.report.dto.AppUserWithOverdueDto;
+import com.betoniarka.biblioteka.report.dto.DeadAppUserAccountDto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -16,12 +16,12 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
-import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
 
@@ -75,6 +75,62 @@ class AppUserReportServiceTest {
            long overdueDays = Math.abs(Duration.between(dueDate, Instant.now(clock)).toDays());
            assertThat(overdueDays).isEqualTo(dto.overdueDays());
        });
+    }
+
+    @Test
+    void getDeadShouldNotIncludeUsersWithCurrentBorrows() {
+        long thresholdDays = 30;
+        List<DeadAppUserAccountDto> deadUsers = service.getDead(thresholdDays);
+
+        assertThat(deadUsers)
+                .allSatisfy(dto -> {
+                    AppUser user = userRepository.findAll().stream()
+                            .filter(u -> u.getId() == dto.userId())
+                            .findFirst()
+                            .orElseThrow();
+                    assertThat(user.getCurrentBorrows()).isEmpty();
+                });
+    }
+
+    @Test
+    void getDeadShouldCalculateInActiveDaysCorrectly(@Autowired @Qualifier("clockReportMock") Clock clock) {
+        long thresholdDays = 7;
+        List<DeadAppUserAccountDto> deadUsers = service.getDead(thresholdDays);
+
+        deadUsers.forEach(dto -> {
+            AppUser user = userRepository.findAll().stream()
+                    .filter(u -> u.getId() == dto.userId())
+                    .findFirst()
+                    .orElseThrow();
+            Instant lastReturned = user.getBorrows().getLast().getReturnedAt();
+            long expectedDays = Math.abs(Duration.between(lastReturned, Instant.now(clock)).toDays());
+            assertThat(dto.inActiveDays()).isEqualTo(expectedDays);
+        });
+    }
+
+    @Test
+    void getDeadShouldReturnUsersInactiveLongerThanGivenDays(@Autowired @Qualifier("clockReportMock") Clock clock) {
+        long thresholdDays = 30;
+
+        List<DeadAppUserAccountDto> deadUsers = service.getDead(thresholdDays);
+
+        assertThat(deadUsers).isNotEmpty();
+
+        deadUsers.forEach(dto -> {
+            AppUser user = userRepository.findAll().stream()
+                    .filter(u -> u.getId() == dto.userId())
+                    .findFirst()
+                    .orElseThrow();
+
+            assertThat(user.getCurrentBorrows()).isEmpty();
+
+            Instant lastReturned = user.getBorrows().getLast().getReturnedAt();
+            long inactiveDays = Duration.between(lastReturned, Instant.now(clock)).toDays();
+            assertThat(inactiveDays).isGreaterThanOrEqualTo(thresholdDays);
+
+            assertThat(dto.username()).isEqualTo(user.getUsername());
+            assertThat(dto.inActiveDays()).isEqualTo(Math.abs(inactiveDays));
+        });
     }
 
 }
