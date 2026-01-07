@@ -54,63 +54,61 @@ class ReportServiceTestConfiguration {
             @Qualifier("bookRepoContentMock") List<Book> books) {
 
         List<Borrow> borrows = List.of(
-                // Oddane na czas
-                createBorrow(1L, users.get(0), books.get(0),
-                        Instant.parse("2025-12-01T10:00:00Z"),
-                        Duration.ofDays(7),
-                        Instant.parse("2025-12-07T09:00:00Z")),
-                createBorrow(2L, users.get(1), books.get(1),
-                        Instant.parse("2025-11-15T12:00:00Z"),
-                        Duration.ofDays(10),
-                        Instant.parse("2025-11-25T10:00:00Z")),
-
-                // Oddane spóźnione
-                createBorrow(3L, users.get(2), books.get(2),
-                        Instant.parse("2025-12-20T09:00:00Z"),
-                        Duration.ofDays(7),
-                        Instant.parse("2026-01-02T11:00:00Z")),
-                createBorrow(4L, users.get(3), books.get(3),
-                        Instant.parse("2026-01-01T08:00:00Z"),
-                        Duration.ofDays(5),
-                        Instant.parse("2026-01-10T08:00:00Z")),
-
-                // Nadal aktywne, w terminie
-                createBorrow(5L, users.get(4), books.get(4),
-                        Instant.parse("2026-01-03T10:00:00Z"),
-                        Duration.ofDays(10),
-                        null),
-                createBorrow(6L, users.get(5), books.get(5),
-                        Instant.parse("2026-01-05T12:00:00Z"),
-                        Duration.ofDays(7),
-                        null),
-
-                // Nadal aktywne, częściowo spóźnione
-                createBorrow(7L, users.get(6), books.get(6),
-                        Instant.parse("2025-12-25T09:00:00Z"),
-                        Duration.ofDays(10),
-                        null),
-                createBorrow(8L, users.get(7), books.get(7),
-                        Instant.parse("2025-11-30T15:00:00Z"),
-                        Duration.ofDays(20),
-                        null),
-
-                // Mieszane różne lata/miesiące
-                createBorrow(9L, users.get(0), books.get(1),
-                        Instant.parse("2024-06-15T10:00:00Z"),
-                        Duration.ofDays(30),
-                        Instant.parse("2024-07-20T12:00:00Z")),
-                createBorrow(10L, users.get(1), books.get(2),
-                        Instant.parse("2024-12-20T08:00:00Z"),
-                        Duration.ofDays(15),
-                        Instant.parse("2025-01-10T10:00:00Z")),
+                // 2023
                 createBorrow(11L, users.get(2), books.get(3),
                         Instant.parse("2023-09-01T09:00:00Z"),
                         Duration.ofDays(20),
-                        Instant.parse("2023-09-25T09:00:00Z")),
+                        Instant.parse("2023-09-25T09:00:00Z")), // oddane w terminie
                 createBorrow(12L, users.get(3), books.get(4),
                         Instant.parse("2023-12-15T08:00:00Z"),
                         Duration.ofDays(10),
-                        null)
+                        null), // nadal aktywne, spóźnione
+
+                // 2024
+                createBorrow(9L, users.get(0), books.get(1),
+                        Instant.parse("2024-06-15T10:00:00Z"),
+                        Duration.ofDays(30),
+                        Instant.parse("2024-07-20T12:00:00Z")), // oddane spóźnione
+                createBorrow(10L, users.get(1), books.get(2),
+                        Instant.parse("2024-12-20T08:00:00Z"),
+                        Duration.ofDays(15),
+                        Instant.parse("2025-01-10T10:00:00Z")), // oddane spóźnione
+
+                // 2025 – oddane na czas
+                createBorrow(1L, users.get(0), books.get(0),
+                        Instant.parse("2025-12-01T10:00:00Z"),
+                        Duration.ofDays(7),
+                        Instant.parse("2025-12-07T09:00:00Z")), // oddane w terminie
+                createBorrow(2L, users.get(1), books.get(1),
+                        Instant.parse("2025-11-15T12:00:00Z"),
+                        Duration.ofDays(10),
+                        Instant.parse("2025-11-25T10:00:00Z")), // oddane w terminie
+
+                // 2025-11 / 2025-12 – nadal aktywne, częściowo spóźnione
+                createBorrow(8L, users.get(7), books.get(7),
+                        Instant.parse("2025-11-30T15:00:00Z"),
+                        Duration.ofDays(20),
+                        null), // nadal aktywne, spóźnione
+                createBorrow(7L, users.get(6), books.get(6),
+                        Instant.parse("2025-12-25T09:00:00Z"),
+                        Duration.ofDays(10),
+                        null), // nadal aktywne, spóźnione
+
+                // 2026 – nadal aktywne, w terminie
+                createBorrow(5L, users.get(4), books.get(4),
+                        Instant.parse("2026-01-03T10:00:00Z"),
+                        Duration.ofDays(10),
+                        null), // nadal aktywne, w terminie
+                createBorrow(6L, users.get(5), books.get(5),
+                        Instant.parse("2026-01-05T12:00:00Z"),
+                        Duration.ofDays(7),
+                        null), // nadal aktywne, w terminie
+
+                // 2026 – oddane spóźnione
+                createBorrow(4L, users.get(3), books.get(3),
+                        Instant.parse("2026-01-01T08:00:00Z"),
+                        Duration.ofDays(5),
+                        Instant.parse("2026-01-10T08:00:00Z")) // oddane spóźnione
         );
 
         borrows.forEach(b -> {

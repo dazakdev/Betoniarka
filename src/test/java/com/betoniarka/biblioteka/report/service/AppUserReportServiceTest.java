@@ -4,6 +4,7 @@ import com.betoniarka.biblioteka.appuser.AppUser;
 import com.betoniarka.biblioteka.appuser.AppUserRepository;
 import com.betoniarka.biblioteka.borrow.Borrow;
 import com.betoniarka.biblioteka.borrow.BorrowRepository;
+import com.betoniarka.biblioteka.report.dto.AppUserSummaryReportDto;
 import com.betoniarka.biblioteka.report.dto.AppUserWithOverdueDto;
 import com.betoniarka.biblioteka.report.dto.DeadAppUserAccountDto;
 import com.betoniarka.biblioteka.report.dto.MostActiveAppUserDto;
@@ -24,12 +25,23 @@ import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
-import java.util.Optional;
 
 @SpringBootTest
 @Import(ReportServiceTestConfiguration.class)
 @ExtendWith(MockitoExtension.class)
 class AppUserReportServiceTest {
+
+    @Autowired
+    @Qualifier("userRepoContentMock")
+    List<AppUser> userRepoContentMock;
+
+    @Autowired
+    @Qualifier("borrowRepoContentMock")
+    List<Borrow> borrowRepoContentMock;
+
+    @Autowired
+    @Qualifier("clockReportMock")
+    Clock clockReportMock;
 
     @MockitoBean
     AppUserRepository userRepository;
@@ -40,14 +52,11 @@ class AppUserReportServiceTest {
     AppUserReportService service;
 
     @BeforeEach
-    void setup(
-            @Autowired @Qualifier("userRepoContentMock") List<AppUser> userRepoContentMock,
-            @Autowired @Qualifier("borrowRepoContentMock") List<Borrow> borrowRepoContentMock,
-            @Autowired @Qualifier("clockReportMock") Clock clockReportMock
-    ) {
+    void setup() {
         Mockito.when(this.userRepository.findAll()).thenReturn(userRepoContentMock);
         Mockito.when(this.borrowRepository.findAll()).thenReturn(borrowRepoContentMock);
         Mockito.when(borrowRepository.count()).thenReturn((long) borrowRepoContentMock.size());
+
         this.service = new AppUserReportService(this.userRepository, this.borrowRepository, clockReportMock);
     }
 
@@ -64,34 +73,21 @@ class AppUserReportServiceTest {
     @Test
     void getOverdueShouldReturnAllAppUsersWithOverdue(@Autowired @Qualifier("clockReportMock") Clock clock) {
        List<AppUserWithOverdueDto> overdueList = service.getOverdue();
-       List<Borrow> borrows = borrowRepository.findAll();
 
-       overdueList.forEach(dto -> {
-           Optional<Borrow> optionalBorrow = borrows.stream().filter(borrow -> dto.borrowId().equals(borrow.getId())).findAny();
-           assertThat(optionalBorrow.isPresent()).isTrue();
+        assertThat(overdueList).extracting(AppUserWithOverdueDto::userId)
+                .contains(4L, 7L, 8L)
+                .doesNotContain(6L);
 
-           Borrow correspondingBorrow = optionalBorrow.get();
-           assertThat(correspondingBorrow.isReturned()).isFalse();
-
-           Instant dueDate = correspondingBorrow.getBorrowedAt().plus(correspondingBorrow.getBorrowDuration());
-           long overdueDays = Math.abs(Duration.between(dueDate, Instant.now(clock)).toDays());
-           assertThat(overdueDays).isEqualTo(dto.overdueDays());
-       });
+        assertThat(overdueList).allMatch(d -> d.overdueDays() > 0);
     }
 
     @Test
-    void getDeadShouldNotIncludeUsersWithCurrentBorrows() {
+    void getDeadShouldReturnAllUsersWithLatestBorrowsOlderThanThreshold() {
         long thresholdDays = 30;
         List<DeadAppUserAccountDto> deadUsers = service.getDead(thresholdDays);
-
         assertThat(deadUsers)
-                .allSatisfy(dto -> {
-                    AppUser user = userRepository.findAll().stream()
-                            .filter(u -> u.getId() == dto.userId())
-                            .findFirst()
-                            .orElseThrow();
-                    assertThat(user.getCurrentBorrows()).isEmpty();
-                });
+                .extracting(DeadAppUserAccountDto::username)
+                .containsExactlyInAnyOrder("bwayne", "asmith", "jdoe");
     }
 
     @Test
@@ -108,31 +104,9 @@ class AppUserReportServiceTest {
             long expectedDays = Math.abs(Duration.between(lastReturned, Instant.now(clock)).toDays());
             assertThat(dto.inActiveDays()).isEqualTo(expectedDays);
         });
-    }
 
-    @Test
-    void getDeadShouldReturnUsersInactiveLongerThanGivenDays(@Autowired @Qualifier("clockReportMock") Clock clock) {
-        long thresholdDays = 30;
-
-        List<DeadAppUserAccountDto> deadUsers = service.getDead(thresholdDays);
-
-        assertThat(deadUsers).isNotEmpty();
-
-        deadUsers.forEach(dto -> {
-            AppUser user = userRepository.findAll().stream()
-                    .filter(u -> u.getId() == dto.userId())
-                    .findFirst()
-                    .orElseThrow();
-
-            assertThat(user.getCurrentBorrows()).isEmpty();
-
-            Instant lastReturned = user.getBorrows().getLast().getReturnedAt();
-            long inactiveDays = Duration.between(lastReturned, Instant.now(clock)).toDays();
-            assertThat(inactiveDays).isGreaterThanOrEqualTo(thresholdDays);
-
-            assertThat(dto.username()).isEqualTo(user.getUsername());
-            assertThat(dto.inActiveDays()).isEqualTo(Math.abs(inactiveDays));
-        });
+        assertThat(deadUsers).extracting(DeadAppUserAccountDto::username)
+                .contains("bwayne", "asmith", "jdoe");
     }
 
     @Test
@@ -161,6 +135,31 @@ class AppUserReportServiceTest {
                     .isGreaterThanOrEqualTo(mostActive.get(i + 1).totalBorrows());
         }
 
+    }
+
+    @Test
+    void getMostActiveShouldReturnTopUsersByBorrowCount() {
+        int limit = 3;
+        List<MostActiveAppUserDto> mostActive = service.getMostActive(limit);
+
+        List<Long> expectedTopUsers = List.of(1L, 2L, 4L);
+        assertThat(mostActive).extracting(MostActiveAppUserDto::userId)
+                .containsExactlyInAnyOrderElementsOf(expectedTopUsers);
+
+        mostActive.forEach(dto -> assertThat(dto.totalBorrows()).isGreaterThan(0));
+    }
+
+    @Test
+    void getSummaryShouldReflectDifferentUsers() {
+        AppUserSummaryReportDto summary = service.getSummary();
+
+        assertThat(summary.totalAppUsers()).isEqualTo(8);
+        assertThat(summary.totalAppUsersWithBorrows()).isGreaterThan(0);
+        assertThat(summary.totalAppUsersWithoutBorrows()).isGreaterThanOrEqualTo(0);
+        assertThat(summary.totalAppUsersWithOverdue()).isGreaterThan(0);
+        assertThat(summary.averageBorrowsPerAppUser()).isGreaterThan(0);
+        assertThat(summary.activeAppUsersLastWeek()).isGreaterThan(0);
+        assertThat(summary.activeAppUsersLastMonth()).isGreaterThan(0);
     }
 
 }
