@@ -58,7 +58,8 @@ class ReportServiceTestConfiguration {
                 createBook(5L, "Lalka", 1, List.of(categories.get(4))),
                 createBook(6L, "Rok 1984", 3, List.of(categories.get(4))),
                 createBook(7L, "Zbrodnia i kara", 2, List.of(categories.get(1))),
-                createBook(8L, "Pieski małe dwa", 2, List.of(categories.get(3)))
+                createBook(8L, "Pieski małe dwa", 2, List.of(categories.get(3))),
+                createBook(9L, "Koziołek Matołek", 0, List.of(categories.get(3)))
         );
     }
 
@@ -178,6 +179,7 @@ class ReportServiceTestConfiguration {
         b.setReturnedAt(returnedAt);
         user.getBorrows().add(b);
         book.getBorrowedBy().add(b);
+        if (returnedAt == null) book.setCount(book.getCount() - 1);
         return b;
     }
 

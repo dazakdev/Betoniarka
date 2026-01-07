@@ -8,7 +8,9 @@ import com.betoniarka.biblioteka.borrow.Borrow;
 import com.betoniarka.biblioteka.borrow.BorrowRepository;
 import com.betoniarka.biblioteka.category.Category;
 import com.betoniarka.biblioteka.category.CategoryRepository;
+import com.betoniarka.biblioteka.report.dto.BookAvailabilityDto;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -19,6 +21,8 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
 @Import(ReportServiceTestConfiguration.class)
@@ -46,6 +50,15 @@ public class BookReportServiceTest {
         Mockito.when(borrowRepository.count()).thenReturn((long) borrowRepoContentMock.size());
 
         this.service = new BookReportService(this.userRepository, this.bookRepository,  this.borrowRepository, this.categoryRepository);
+    }
+
+    @Test
+    void getAvailabilityShouldReturnBooksWithCountGreaterThanZero() {
+        List<BookAvailabilityDto> availabilityList = service.getAvailability();
+        assertThat(availabilityList)
+                .hasSize(7)
+                .extracting(BookAvailabilityDto::bookId)
+                .containsExactlyInAnyOrder(1L, 2L, 3L, 4L, 6L, 7L, 8L);
     }
 
 }
