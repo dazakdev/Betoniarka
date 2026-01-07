@@ -38,7 +38,6 @@ public class BookReportServiceTest {
 
     @MockitoBean AppUserRepository userRepository;
     @MockitoBean BookRepository bookRepository;
-    @MockitoBean CategoryRepository categoryRepository;
     @MockitoBean BorrowRepository borrowRepository;
 
     BookReportService service;

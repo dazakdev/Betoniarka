@@ -53,7 +53,7 @@ public class AppUserReportService {
             .count();
 
     long totalBorrows = borrowRepository.count();
-    long averageBorrowsPerAppUser = totalBorrows / totalAppUsers;
+    long averageBorrowsPerAppUser = totalAppUsers == 0 ? 0 : totalBorrows / totalAppUsers;
 
     long totalOverdueDays =
         borrowRepository.findAll().stream()
@@ -68,13 +68,14 @@ public class AppUserReportService {
                 })
             .sum();
 
-    long averageOverdueDaysPerAppUser = totalOverdueDays / totalAppUsers;
+
+    long averageOverdueDaysPerAppUser = totalAppUsers == 0 ? 0 : totalOverdueDays / totalAppUsers;
 
     long activeAppUsersLastWeek = totalAppUsers - getDead(7).size();
-    double activityProportionLastWeek = ((double) activeAppUsersLastWeek / totalAppUsers);
+    double activityProportionLastWeek = totalAppUsers == 0 ? 0 : ((double) activeAppUsersLastWeek / totalAppUsers);
 
     long activeAppUsersLastMonth = totalAppUsers - getDead(31).size();
-    double activityProportionLastMonth = ((double) activeAppUsersLastMonth / totalAppUsers);
+    double activityProportionLastMonth = totalAppUsers == 0 ? 0 : ((double) activeAppUsersLastMonth / totalAppUsers);
 
     return new AppUserSummaryReportDto(
         totalAppUsers,

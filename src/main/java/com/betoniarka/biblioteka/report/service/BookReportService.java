@@ -5,7 +5,6 @@ import com.betoniarka.biblioteka.book.Book;
 import com.betoniarka.biblioteka.book.BookRepository;
 import com.betoniarka.biblioteka.borrow.BorrowRepository;
 import com.betoniarka.biblioteka.category.Category;
-import com.betoniarka.biblioteka.category.CategoryRepository;
 import com.betoniarka.biblioteka.report.dto.*;
 import java.util.Comparator;
 import java.util.List;

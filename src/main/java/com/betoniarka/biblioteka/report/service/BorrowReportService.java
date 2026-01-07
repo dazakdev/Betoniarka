@@ -37,7 +37,8 @@ public class BorrowReportService {
                 borrow -> Duration.between(borrow.getBorrowedAt(), borrow.getReturnedAt()).toDays())
             .sum();
 
-    long averageBorrowDurationDays = totalBorrowDurationDays / userRepository.count();
+    long totalAppUsers = userRepository.count();
+    long averageBorrowDurationDays = totalAppUsers == 0 ? 0 : totalBorrowDurationDays / totalAppUsers;
 
     long borrowsLastWeek =
         borrowList.stream()
