@@ -8,121 +8,133 @@ import com.betoniarka.biblioteka.report.dto.AppUserSummaryReportDto;
 import com.betoniarka.biblioteka.report.dto.AppUserWithOverdueDto;
 import com.betoniarka.biblioteka.report.dto.DeadAppUserAccountDto;
 import com.betoniarka.biblioteka.report.dto.MostActiveAppUserDto;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Comparator;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class AppUserReportService {
 
-    private final AppUserRepository userRepository;
-    private final BorrowRepository borrowRepository;
+  private final AppUserRepository userRepository;
+  private final BorrowRepository borrowRepository;
 
-    public AppUserSummaryReportDto getSummary() {
+  public AppUserSummaryReportDto getSummary() {
 
-        var appUsersList = userRepository.findAll().stream().toList();
+    var appUsersList = userRepository.findAll().stream().toList();
 
-        long totalAppUsers = appUsersList.size();
+    long totalAppUsers = appUsersList.size();
 
-        long totalAppUsersWithBorrows = appUsersList.stream()
-                                                    .filter(user -> !user.getCurrentBorrows().isEmpty())
-                                                    .count();
+    long totalAppUsersWithBorrows =
+        appUsersList.stream().filter(user -> !user.getCurrentBorrows().isEmpty()).count();
 
-        long totalAppUsersWithoutBorrows = totalAppUsers - totalAppUsersWithBorrows;
+    long totalAppUsersWithoutBorrows = totalAppUsers - totalAppUsersWithBorrows;
 
-        long totalAppUsersWithOverdue = appUsersList.stream()
-                                                    .filter(user -> {
-                                                        for (Borrow borrow : user.getCurrentBorrows()) {
-                                                            if (borrow.getBorrowedAt().plus(borrow.getBorrowDuration()).isBefore(Instant.now()))
-                                                                return true;
-                                                        }
-                                                        return false;
-                                                    }).count();
+    long totalAppUsersWithOverdue =
+        appUsersList.stream()
+            .filter(
+                user -> {
+                  for (Borrow borrow : user.getCurrentBorrows()) {
+                    if (borrow
+                        .getBorrowedAt()
+                        .plus(borrow.getBorrowDuration())
+                        .isBefore(Instant.now())) return true;
+                  }
+                  return false;
+                })
+            .count();
 
-        long totalBorrows = borrowRepository.count();
-        long averageBorrowsPerAppUser = totalBorrows / totalAppUsers;
+    long totalBorrows = borrowRepository.count();
+    long averageBorrowsPerAppUser = totalBorrows / totalAppUsers;
 
-        long totalOverdueDays = borrowRepository.findAll().stream()
-                                                .filter(Borrow::isReturned)
-                                                .mapToLong(borrow -> {
-                                                    Instant returnedTime = borrow.getReturnedAt();
-                                                    Instant expectedReturnTime = borrow.getBorrowedAt().plus(borrow.getBorrowDuration());
-                                                    Duration duration = Duration.between(returnedTime, expectedReturnTime);
-                                                    return duration.isNegative() ? 0 : duration.toDays();
-                                                }).sum();
+    long totalOverdueDays =
+        borrowRepository.findAll().stream()
+            .filter(Borrow::isReturned)
+            .mapToLong(
+                borrow -> {
+                  Instant returnedTime = borrow.getReturnedAt();
+                  Instant expectedReturnTime =
+                      borrow.getBorrowedAt().plus(borrow.getBorrowDuration());
+                  Duration duration = Duration.between(returnedTime, expectedReturnTime);
+                  return duration.isNegative() ? 0 : duration.toDays();
+                })
+            .sum();
 
-        long averageOverdueDaysPerAppUser = totalOverdueDays / totalAppUsers;
+    long averageOverdueDaysPerAppUser = totalOverdueDays / totalAppUsers;
 
-        long activeAppUsersLastWeek = totalAppUsers - getDead(7).size();
-        double activityProportionLastWeek = ((double) activeAppUsersLastWeek / totalAppUsers);
+    long activeAppUsersLastWeek = totalAppUsers - getDead(7).size();
+    double activityProportionLastWeek = ((double) activeAppUsersLastWeek / totalAppUsers);
 
-        long activeAppUsersLastMonth = totalAppUsers - getDead(31).size();
-        double activityProportionLastMonth = ((double) activeAppUsersLastMonth / totalAppUsers);
+    long activeAppUsersLastMonth = totalAppUsers - getDead(31).size();
+    double activityProportionLastMonth = ((double) activeAppUsersLastMonth / totalAppUsers);
 
-        return new AppUserSummaryReportDto(
-                totalAppUsers,
-                totalAppUsersWithBorrows,
-                totalAppUsersWithoutBorrows,
-                totalAppUsersWithOverdue,
-                averageBorrowsPerAppUser,
-                averageOverdueDaysPerAppUser,
-                activeAppUsersLastWeek,
-                activityProportionLastWeek,
-                activeAppUsersLastMonth,
-                activityProportionLastMonth
-        );
+    return new AppUserSummaryReportDto(
+        totalAppUsers,
+        totalAppUsersWithBorrows,
+        totalAppUsersWithoutBorrows,
+        totalAppUsersWithOverdue,
+        averageBorrowsPerAppUser,
+        averageOverdueDaysPerAppUser,
+        activeAppUsersLastWeek,
+        activityProportionLastWeek,
+        activeAppUsersLastMonth,
+        activityProportionLastMonth);
+  }
 
-    }
+  public List<AppUserWithOverdueDto> getOverdue() {
 
-    public List<AppUserWithOverdueDto> getOverdue() {
+    return borrowRepository.findAll().stream()
+        .filter(
+            borrow ->
+                borrow.isReturned()
+                    && Duration.between(
+                            Instant.now(), borrow.getBorrowedAt().plus(borrow.getBorrowDuration()))
+                        .isPositive())
+        .map(
+            borrow ->
+                new AppUserWithOverdueDto(
+                    borrow.getAppUser().getId(),
+                    borrow.getAppUser().getUsername(),
+                    borrow.getBook().getId(),
+                    Duration.between(
+                            Instant.now(), borrow.getBorrowedAt().plus(borrow.getBorrowDuration()))
+                        .toDays()))
+        .toList();
+  }
 
-        return borrowRepository.findAll().stream()
-                                  .filter(borrow -> borrow.isReturned() &&
-                                          Duration.between(Instant.now(), borrow.getBorrowedAt().plus(borrow.getBorrowDuration())).isPositive()
-                                  )
-                                  .map(borrow -> new AppUserWithOverdueDto(
-                                          borrow.getAppUser().getId(),
-                                          borrow.getAppUser().getUsername(),
-                                          borrow.getBook().getId(),
-                                          Duration.between(Instant.now(), borrow.getBorrowedAt().plus(borrow.getBorrowDuration())).toDays()
-                                  ))
-                                  .toList();
+  public List<MostActiveAppUserDto> getMostActive(int limit) {
 
-    }
+    return userRepository.findAll().stream()
+        .sorted(Comparator.comparingLong((AppUser user) -> user.getBorrows().size()).reversed())
+        .limit(limit)
+        .map(
+            user ->
+                new MostActiveAppUserDto(
+                    user.getId(), user.getUsername(), user.getBorrows().size()))
+        .toList();
+  }
 
-    public List<MostActiveAppUserDto> getMostActive(int limit) {
+  public List<DeadAppUserAccountDto> getDead(long days) {
 
-        return userRepository.findAll().stream()
-                                       .sorted(Comparator.comparingLong(
-                                               (AppUser user) -> user.getBorrows().size()).reversed())
-                                       .limit(limit)
-                                       .map(user -> new MostActiveAppUserDto(
-                                               user.getId(),
-                                               user.getUsername(),
-                                               user.getBorrows().size()
-                                       ))
-                                       .toList();
-
-    }
-
-    public List<DeadAppUserAccountDto> getDead(long days) {
-
-        return userRepository.findAll().stream()
-                                       .filter(user -> user.getCurrentBorrows().isEmpty() &&
-                                               Duration.between(user.getBorrows().getLast().getReturnedAt(), Instant.now()).toDays() >= days)
-                                       .map(user -> new DeadAppUserAccountDto(
-                                                user.getId(),
-                                                user.getUsername(),
-                                                Duration.between(user.getBorrows().getLast().getReturnedAt(), Instant.now()).toDays())
-                                        ).toList();
-
-    }
-
+    return userRepository.findAll().stream()
+        .filter(
+            user ->
+                user.getCurrentBorrows().isEmpty()
+                    && Duration.between(user.getBorrows().getLast().getReturnedAt(), Instant.now())
+                            .toDays()
+                        >= days)
+        .map(
+            user ->
+                new DeadAppUserAccountDto(
+                    user.getId(),
+                    user.getUsername(),
+                    Duration.between(user.getBorrows().getLast().getReturnedAt(), Instant.now())
+                        .toDays()))
+        .toList();
+  }
 }

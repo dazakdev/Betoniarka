@@ -6,8 +6,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 // TODO service etc.
 
 @RestController
@@ -15,19 +13,19 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CategoryController {
 
-    private final CategoryRepository repository;
+  private final CategoryRepository repository;
 
-    @PostMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
-    @ResponseStatus(HttpStatus.CREATED)
-    public Category create(@Valid @RequestBody Category category) {
-        return repository.save(category);
-    }
+  @PostMapping
+  @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
+  @ResponseStatus(HttpStatus.CREATED)
+  public Category create(@Valid @RequestBody Category category) {
+    return repository.save(category);
+  }
 
-    @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void delete(@PathVariable Long id) {
-        repository.deleteById(id);
-    }
+  @DeleteMapping("/{id}")
+  @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void delete(@PathVariable Long id) {
+    repository.deleteById(id);
+  }
 }

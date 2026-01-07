@@ -1,8 +1,8 @@
-package com.betoniarka.biblioteka.book;
+package com.betoniarka.biblioteka.author;
 
-import com.betoniarka.biblioteka.book.dto.BookCreateDto;
-import com.betoniarka.biblioteka.book.dto.BookResponseDto;
-import com.betoniarka.biblioteka.book.dto.BookUpdateDto;
+import com.betoniarka.biblioteka.author.dto.AuthorCreateDto;
+import com.betoniarka.biblioteka.author.dto.AuthorResponseDto;
+import com.betoniarka.biblioteka.author.dto.AuthorUpdateDto;
 import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -13,25 +13,26 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 @RestController
-@RequestMapping(path = "books")
+@RequestMapping(path = "authors")
 @RequiredArgsConstructor
-public class BookController {
+public class AuthorController {
 
-  private final BookService service;
+  private final AuthorService service;
 
   @GetMapping
-  public List<BookResponseDto> getBooks() {
+  public List<AuthorResponseDto> getAuthors() {
     return service.getAll();
   }
 
   @GetMapping("/{id}")
-  public BookResponseDto getBookById(@PathVariable Long id) {
+  public AuthorResponseDto getAuthorById(@PathVariable Long id) {
     return service.getById(id);
   }
 
   @PostMapping
   @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
-  public ResponseEntity<BookResponseDto> createBook(@Valid @RequestBody BookCreateDto requestDto) {
+  public ResponseEntity<AuthorResponseDto> createAuthor(
+      @Valid @RequestBody AuthorCreateDto requestDto) {
     var responseDto = service.create(requestDto);
 
     var location =
@@ -45,15 +46,15 @@ public class BookController {
 
   @PatchMapping(path = "/{id}")
   @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
-  public BookResponseDto updateBook(
-      @PathVariable Long id, @Valid @RequestBody BookUpdateDto requestDto) {
+  public AuthorResponseDto updateAuthor(
+      @PathVariable Long id, @Valid @RequestBody AuthorUpdateDto requestDto) {
     return service.update(id, requestDto);
   }
 
   @DeleteMapping(path = "/{id}")
   @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  public void deleteBook(@PathVariable Long id) {
+  public void deleteAuthor(@PathVariable Long id) {
     service.delete(id);
   }
 }

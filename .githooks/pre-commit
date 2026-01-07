@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+GRADLE_USER_HOME="${GRADLE_USER_HOME:-$(pwd)/.gradle-home}"
+export GRADLE_USER_HOME
+
+staged_files="$(git diff --cached --name-only --diff-filter=ACMR || true)"
+
+# Auto-format (incl. Java) and re-stage only the files that were already staged.
+bash ./gradlew -q spotlessApply
+
+if [[ -n "${staged_files}" ]]; then
+  # Re-stage only files that still exist (spotless doesn't create files, but be safe).
+  while IFS= read -r path; do
+    [[ -f "${path}" ]] && git add "${path}" || true
+  done <<<"${staged_files}"
+fi
+
+# Ensure nothing left unformatted.
+bash ./gradlew -q spotlessCheck
