@@ -6,6 +6,7 @@ import com.betoniarka.biblioteka.borrow.Borrow;
 import com.betoniarka.biblioteka.borrow.BorrowRepository;
 import com.betoniarka.biblioteka.report.dto.AppUserWithOverdueDto;
 import com.betoniarka.biblioteka.report.dto.DeadAppUserAccountDto;
+import com.betoniarka.biblioteka.report.dto.MostActiveAppUserDto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -46,6 +47,7 @@ class AppUserReportServiceTest {
     ) {
         Mockito.when(this.userRepository.findAll()).thenReturn(userRepoContentMock);
         Mockito.when(this.borrowRepository.findAll()).thenReturn(borrowRepoContentMock);
+        Mockito.when(borrowRepository.count()).thenReturn((long) borrowRepoContentMock.size());
         this.service = new AppUserReportService(this.userRepository, this.borrowRepository, clockReportMock);
     }
 
@@ -131,6 +133,34 @@ class AppUserReportServiceTest {
             assertThat(dto.username()).isEqualTo(user.getUsername());
             assertThat(dto.inActiveDays()).isEqualTo(Math.abs(inactiveDays));
         });
+    }
+
+    @Test
+    void getMostActiveShouldRespectLimit() {
+        int limit = 3;
+        assertThat(service.getMostActive(limit)).hasSizeLessThanOrEqualTo(limit);
+    }
+
+    @Test
+    void getMostActiveShouldReturnEmptyListIfNoUsers() {
+        Mockito.when(userRepository.findAll()).thenReturn(List.of());
+        List<MostActiveAppUserDto> mostActive = service.getMostActive(5);
+        assertThat(mostActive).isEmpty();
+    }
+
+    @Test
+    void getMostActiveShouldReturnUsersSortedByBorrowsDescending() {
+        int limit = 5;
+
+        List<MostActiveAppUserDto> mostActive = service.getMostActive(limit);
+
+        assertThat(mostActive).isNotEmpty();
+
+        for (int i = 0; i < mostActive.size() - 1; i++) {
+            assertThat(mostActive.get(i).totalBorrows())
+                    .isGreaterThanOrEqualTo(mostActive.get(i + 1).totalBorrows());
+        }
+
     }
 
 }
