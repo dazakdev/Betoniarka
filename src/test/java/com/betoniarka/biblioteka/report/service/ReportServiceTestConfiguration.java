@@ -51,7 +51,7 @@ class ReportServiceTestConfiguration {
     public List<Book> bookRepoContentMock(
         @Qualifier("categoryRepoContentMock") List<Category> categories
     ) {
-        return List.of(
+        List<Book> books = List.of(
                 createBook(1L, "Władca Pierścieni", 3, List.of(categories.get(0))),
                 createBook(2L, "Harry Potter i Kamień Filozoficzny", 5, List.of(categories.get(0), categories.get(3))),
                 createBook(3L, "Hobbit", 2, List.of(categories.get(0))),
@@ -62,6 +62,45 @@ class ReportServiceTestConfiguration {
                 createBook(8L, "Pieski małe dwa", 2, List.of(categories.get(3))),
                 createBook(9L, "Koziołek Matołek", 0, List.of(categories.get(3)))
         );
+
+        books.forEach(b -> {
+            b.getCategories().forEach(category -> category.getBooks().add(b));
+        });
+
+        return books;
+    }
+
+    @Bean
+    @Qualifier("reviewRepoContentMock")
+    public List<Review> reviewRepoContentMock(
+            @Qualifier("userRepoContentMock") List<AppUser> users,
+            @Qualifier("bookRepoContentMock") List<Book> books
+    ) {
+        List<Review> reviews = List.of(
+                createReview(1L, 1, "Najgorsza lektura, nie polecam.",
+                        users.get(0), books.get(6)), // jdoe -> Zbrodnia i kara
+                createReview(2L, 5, "Absolutna klasyka fantasy. Uwielbiam!",
+                        users.get(1), books.get(0)), // asmith -> Władca Pierścieni
+                createReview(3L, 4, "Świetna książka, choć momentami za długa.",
+                        users.get(4), books.get(1)), // dprince -> Harry Potter
+                createReview(4L, 3, "Ciekawa, ale spodziewałem się czegoś więcej.",
+                        users.get(5), books.get(3)), // p.parker -> Gra o Tron
+                createReview(5L, 5, "Jedna z najlepszych książek, jakie czytałem.",
+                        users.get(2), books.get(5)), // bwayne -> Rok 1984
+                createReview(6L, 4, "Świetna dla młodszych czytelników.",
+                        users.get(7), books.get(8)), // srogers -> Koziołek Matołek
+                createReview(7L, 3, "Fajna książka, szkoda że tak mało egzemplarzy.",
+                        users.get(3), books.get(4)), // ckent -> Lalka
+                createReview(8L, 5, "Trudna, ale bardzo wartościowa lektura.",
+                        users.get(6), books.get(6))  // tstark -> Zbrodnia i kara
+        );
+
+        reviews.forEach(r -> {
+            r.getBook().getReviews().add(r);
+            r.getAppUser().getReviews().add(r);
+        });
+
+        return reviews;
     }
 
     @Bean
@@ -167,8 +206,16 @@ class ReportServiceTestConfiguration {
         b.setTitle(title);
         b.setCount(count);
         b.setCategories(categories);
-        categories.forEach(category -> category.getBooks().add(b));
         return b;
+    }
+
+    private static Review createReview(long id, int rating, String comment, AppUser user, Book book) {
+        Review r = new Review(id);
+        r.setRating(rating);
+        r.setComment(comment);
+        r.setBook(book);
+        r.setAppUser(user);
+        return r;
     }
 
     private static Borrow createBorrow(long id, AppUser user, Book book, Instant borrowedAt, Duration borrowDuration, Instant returnedAt) {

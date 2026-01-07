@@ -10,6 +10,7 @@ import com.betoniarka.biblioteka.category.Category;
 import com.betoniarka.biblioteka.category.CategoryRepository;
 import com.betoniarka.biblioteka.report.dto.BookAvailabilityDto;
 import com.betoniarka.biblioteka.report.dto.MostPopularBookCategoryDto;
+import com.betoniarka.biblioteka.report.dto.MostReviewedBookDto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -63,11 +64,6 @@ public class BookReportServiceTest {
     }
 
     @Test
-    void getMostReviewedShouldReturnBooksWithTheGreatestCountOfReviews() {
-
-    }
-
-    @Test
     void getMostPopularCategoriesForLimitTwoShouldReturnFantasyAndForKids() {
         int threshold = 2;
         List<MostPopularBookCategoryDto> popularCategories = service.getMostPopularCategories(2);
@@ -79,6 +75,19 @@ public class BookReportServiceTest {
                         dto.categoryName().equals("Dramat") ||
                         dto.categoryName().equals("Dla dzieci")
                 );
+    }
+
+    @Test
+    void getMostReviewedForLimitOneShouldReturnCrimeAndPunishment() {
+        int threshold = 1;
+        List<MostReviewedBookDto> mostReviewedBooks = service.getMostReviewed(1);
+        assertThat(mostReviewedBooks)
+                .extracting(MostReviewedBookDto::bookId)
+                .containsExactly(7L);
+
+        assertThat(mostReviewedBooks)
+                .extracting(MostReviewedBookDto::totalReviews)
+                .containsExactly((long) 2);
     }
 
 }

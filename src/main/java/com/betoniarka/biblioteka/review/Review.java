@@ -39,6 +39,11 @@ public class Review {
 
   public Review() {}
 
+    // Tests
+    public Review(long id) {
+     this.id = id;
+    }
+
   @Override
   public boolean equals(Object o) {
     if (o == null || getClass() != o.getClass()) return false;
