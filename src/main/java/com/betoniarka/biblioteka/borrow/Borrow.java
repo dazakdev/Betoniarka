@@ -50,6 +50,10 @@ public class Borrow {
 
   public Borrow() {}
 
+    public Borrow(long id) {
+      this.id = id;
+    }
+
   public boolean isReturned() {
     return returnedAt != null;
   }

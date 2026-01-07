@@ -65,6 +65,11 @@ public class AppUser {
 
   public AppUser() {}
 
+    // Test
+    public AppUser(long id) {
+      this.id = id;
+    }
+
   // TODO add queue checks
   public void borrowBook(Borrow borrow, Book book) {
     if (getCurrentBorrows().size() >= 3)

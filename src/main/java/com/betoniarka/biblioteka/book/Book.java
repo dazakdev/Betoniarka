@@ -62,6 +62,11 @@ public class Book {
 
   public Book() {}
 
+    // Tests
+    public Book(long id) {
+      this.id = id;
+    }
+
   public void addCategory(Category category) {
     if (this.categories.contains(category)) {
       return;
