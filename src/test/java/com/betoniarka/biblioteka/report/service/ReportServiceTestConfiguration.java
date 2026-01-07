@@ -4,6 +4,7 @@ import com.betoniarka.biblioteka.appuser.AppUser;
 import com.betoniarka.biblioteka.appuser.AppUserRole;
 import com.betoniarka.biblioteka.book.Book;
 import com.betoniarka.biblioteka.borrow.Borrow;
+import com.betoniarka.biblioteka.category.Category;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -33,17 +34,31 @@ class ReportServiceTestConfiguration {
     }
 
     @Bean
-    @Qualifier("bookRepoContentMock")
-    public List<Book> bookRepoContentMock() {
+    @Qualifier("categoryRepoContentMock")
+    public List<Category> categoryContentMock() {
         return List.of(
-                createBook(1L, "Władca Pierścieni", 3),
-                createBook(2L, "Harry Potter i Kamień Filozoficzny", 5),
-                createBook(3L, "Hobbit", 2),
-                createBook(4L, "Gra o Tron", 4),
-                createBook(5L, "Opowieść o dwóch miastach", 1),
-                createBook(6L, "Rok 1984", 3),
-                createBook(7L, "Zbrodnia i kara", 2),
-                createBook(8L, "Pieski małe dwa", 2)
+                createCategory(1L, "Fantastyka"),
+                createCategory(2L, "Kryminał"),
+                createCategory(3L, "Science-Fiction"),
+                createCategory(4L, "Dla dzieci"),
+                createCategory(5L, "Dramat")
+        );
+    }
+
+    @Bean
+    @Qualifier("bookRepoContentMock")
+    public List<Book> bookRepoContentMock(
+        @Qualifier("categoryRepoContentMock") List<Category> categories
+    ) {
+        return List.of(
+                createBook(1L, "Władca Pierścieni", 3, List.of(categories.get(0))),
+                createBook(2L, "Harry Potter i Kamień Filozoficzny", 5, List.of(categories.get(0), categories.get(3))),
+                createBook(3L, "Hobbit", 2, List.of(categories.get(1))),
+                createBook(4L, "Gra o Tron", 4, List.of(categories.get(2))),
+                createBook(5L, "Lalka", 1, List.of(categories.get(4))),
+                createBook(6L, "Rok 1984", 3, List.of(categories.get(4))),
+                createBook(7L, "Zbrodnia i kara", 2, List.of(categories.get(1))),
+                createBook(8L, "Pieski małe dwa", 2, List.of(categories.get(3)))
         );
     }
 
@@ -51,7 +66,8 @@ class ReportServiceTestConfiguration {
     @Qualifier("borrowRepoContentMock")
     public List<Borrow> borrowRepoContentMock(
             @Qualifier("userRepoContentMock") List<AppUser> users,
-            @Qualifier("bookRepoContentMock") List<Book> books) {
+            @Qualifier("bookRepoContentMock") List<Book> books
+    ) {
 
         List<Borrow> borrows = List.of(
                 // 2023
@@ -138,10 +154,18 @@ class ReportServiceTestConfiguration {
         return u;
     }
 
-    private static Book createBook(long id, String title, int count) {
+    private static Category createCategory(long id, String name) {
+        Category c = new Category(id);
+        c.setName(name);
+        return c;
+    }
+
+    private static Book createBook(long id, String title, int count, List<Category> categories) {
         Book b = new Book(id);
         b.setTitle(title);
         b.setCount(count);
+        b.setCategories(categories);
+        categories.forEach(category -> category.getBooks().add(b));
         return b;
     }
 

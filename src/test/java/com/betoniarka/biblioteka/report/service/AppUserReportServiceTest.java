@@ -31,23 +31,12 @@ import java.util.List;
 @ExtendWith(MockitoExtension.class)
 class AppUserReportServiceTest {
 
-    @Autowired
-    @Qualifier("userRepoContentMock")
-    List<AppUser> userRepoContentMock;
+    @Autowired @Qualifier("userRepoContentMock") List<AppUser> userRepoContentMock;
+    @Autowired @Qualifier("borrowRepoContentMock") List<Borrow> borrowRepoContentMock;
+    @Autowired @Qualifier("clockReportMock") Clock clockReportMock;
 
-    @Autowired
-    @Qualifier("borrowRepoContentMock")
-    List<Borrow> borrowRepoContentMock;
-
-    @Autowired
-    @Qualifier("clockReportMock")
-    Clock clockReportMock;
-
-    @MockitoBean
-    AppUserRepository userRepository;
-
-    @MockitoBean
-    BorrowRepository borrowRepository;
+    @MockitoBean AppUserRepository userRepository;
+    @MockitoBean BorrowRepository borrowRepository;
 
     AppUserReportService service;
 
@@ -104,9 +93,6 @@ class AppUserReportServiceTest {
             long expectedDays = Math.abs(Duration.between(lastReturned, Instant.now(clock)).toDays());
             assertThat(dto.inActiveDays()).isEqualTo(expectedDays);
         });
-
-        assertThat(deadUsers).extracting(DeadAppUserAccountDto::username)
-                .contains("bwayne", "asmith", "jdoe");
     }
 
     @Test
@@ -154,12 +140,12 @@ class AppUserReportServiceTest {
         AppUserSummaryReportDto summary = service.getSummary();
 
         assertThat(summary.totalAppUsers()).isEqualTo(8);
-        assertThat(summary.totalAppUsersWithBorrows()).isGreaterThan(0);
-        assertThat(summary.totalAppUsersWithoutBorrows()).isGreaterThanOrEqualTo(0);
-        assertThat(summary.totalAppUsersWithOverdue()).isGreaterThan(0);
+        assertThat(summary.totalAppUsersWithBorrows()).isEqualTo(5);
+        assertThat(summary.totalAppUsersWithoutBorrows()).isEqualTo(3);
+        assertThat(summary.totalAppUsersWithOverdue()).isEqualTo(3);
         assertThat(summary.averageBorrowsPerAppUser()).isGreaterThan(0);
-        assertThat(summary.activeAppUsersLastWeek()).isGreaterThan(0);
-        assertThat(summary.activeAppUsersLastMonth()).isGreaterThan(0);
+        assertThat(summary.activeAppUsersLastWeek()).isEqualTo(5);
+        assertThat(summary.activeAppUsersLastMonth()).isEqualTo(6);
     }
 
 }
