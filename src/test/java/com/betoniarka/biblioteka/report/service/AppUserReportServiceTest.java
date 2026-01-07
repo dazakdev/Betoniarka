@@ -71,7 +71,7 @@ class AppUserReportServiceTest {
     }
 
     @Test
-    void getOverdueShouldReturnAllAppUsersWithOverdue(@Autowired @Qualifier("clockReportMock") Clock clock) {
+    void getOverdueShouldReturnAllAppUsersWithOverdue() {
        List<AppUserWithOverdueDto> overdueList = service.getOverdue();
 
         assertThat(overdueList).extracting(AppUserWithOverdueDto::userId)
