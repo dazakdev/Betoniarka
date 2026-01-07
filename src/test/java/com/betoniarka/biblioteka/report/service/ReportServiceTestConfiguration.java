@@ -8,8 +8,10 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 
+import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.List;
 
 @TestConfiguration
@@ -85,7 +87,7 @@ class ReportServiceTestConfiguration {
                 // Nadal aktywne, częściowo spóźnione
                 createBorrow(7L, users.get(6), books.get(6),
                         Instant.parse("2025-12-25T09:00:00Z"),
-                        Duration.ofDays(14),
+                        Duration.ofDays(10),
                         null),
                 createBorrow(8L, users.get(7), books.get(7),
                         Instant.parse("2025-11-30T15:00:00Z"),
@@ -117,6 +119,12 @@ class ReportServiceTestConfiguration {
         });
 
         return borrows;
+    }
+
+    @Bean
+    @Qualifier("clockReportMock")
+    Clock clockReportMock() {
+         return Clock.fixed(Instant.parse("2026-01-07T06:00:00Z"), ZoneOffset.UTC);
     }
 
     /*********************************************************************************************************************/

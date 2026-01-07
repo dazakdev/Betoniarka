@@ -90,23 +90,24 @@ public class AppUserReportService {
   }
 
   public List<AppUserWithOverdueDto> getOverdue() {
-
+    Instant now = Instant.now(clock);
     return borrowRepository.findAll().stream()
         .filter(
             borrow ->
-                borrow.isReturned()
+                !borrow.isReturned()
                     && Duration.between(
-                            Instant.now(clock), borrow.getBorrowedAt().plus(borrow.getBorrowDuration()))
-                        .isPositive())
+                            now, borrow.getBorrowedAt().plus(borrow.getBorrowDuration()))
+                        .isNegative())
         .map(
             borrow ->
                 new AppUserWithOverdueDto(
                     borrow.getAppUser().getId(),
                     borrow.getAppUser().getUsername(),
                     borrow.getBook().getId(),
-                    Duration.between(
-                            Instant.now(clock), borrow.getBorrowedAt().plus(borrow.getBorrowDuration()))
-                        .toDays()))
+                    borrow.getId(),
+                    Math.abs(Duration.between(
+                            now, borrow.getBorrowedAt().plus(borrow.getBorrowDuration()))
+                        .toDays())))
         .toList();
   }
 
