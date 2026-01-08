@@ -1,8 +1,7 @@
 plugins {
-	id 'java'
-	id 'org.springframework.boot' version '4.0.0'
-	id 'io.spring.dependency-management' version '1.1.7'
-	id 'com.diffplug.spotless' version '8.1.0'
+    id 'java'
+    id 'org.springframework.boot' version '4.0.0'
+    id 'io.spring.dependency-management' version '1.1.7'
 }
 
 group = 'com.betoniarka'
@@ -10,82 +9,45 @@ version = '0.0.1-SNAPSHOT'
 description = 'OOP Technologies university course project'
 
 java {
-	toolchain {
-		languageVersion = JavaLanguageVersion.of(25)
-	}
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(25)
+    }
 }
 
 repositories {
-	mavenCentral()
+    mavenCentral()
 }
 
 dependencies {
 
-	// DATABASE
-	implementation 'org.springframework.boot:spring-boot-h2console'
-	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-	implementation 'org.springframework.boot:spring-boot-starter-validation'
-	runtimeOnly 'com.h2database:h2'
+    // DATABASE
+    implementation 'org.springframework.boot:spring-boot-h2console'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    runtimeOnly 'com.h2database:h2'
 
-	// WEB
-	implementation 'org.springframework.boot:spring-boot-starter-webmvc'
-	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.14'
+    // WEB
+    implementation 'org.springframework.boot:spring-boot-starter-webmvc'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.14'
 
-	// SECURITY
-	implementation 'org.springframework.boot:spring-boot-starter-security'
+    // SECURITY
+    implementation 'org.springframework.boot:spring-boot-starter-security'
 
-	// LOMBOK
-	compileOnly 'org.projectlombok:lombok'
-	annotationProcessor 'org.projectlombok:lombok'
+    // LOMBOK
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
 
-	// MapStruct
-	implementation 'org.mapstruct:mapstruct:1.5.5.Final'
-	annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.5.Final'
+    // MapStruct
+    implementation 'org.mapstruct:mapstruct:1.5.5.Final'
+    annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.5.Final'
 
-	// TEST
-	testImplementation 'org.springframework.boot:spring-boot-starter-data-jpa-test'
-	testImplementation 'org.springframework.boot:spring-boot-starter-validation-test'
-	testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
-	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    // TEST
+    testImplementation 'org.springframework.boot:spring-boot-starter-data-jpa-test'
+    testImplementation 'org.springframework.boot:spring-boot-starter-validation-test'
+    testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
 tasks.named('test') {
-	useJUnitPlatform()
-}
-
-spotless {
-	java {
-		target 'src/**/*.java'
-		googleJavaFormat()
-		removeUnusedImports()
-		importOrder()
-		trimTrailingWhitespace()
-		endWithNewline()
-	}
-	format 'misc', {
-		target '*.md', '.gitignore'
-		trimTrailingWhitespace()
-		endWithNewline()
-	}
-	groovyGradle {
-		target '*.gradle'
-		greclipse()
-	}
-}
-
-tasks.named('check') {
-	dependsOn 'spotlessCheck'
-}
-
-tasks.register('installGitHooks', Exec) {
-	group = 'build setup'
-	description = 'Configures git to use .githooks (core.hooksPath) and ensures hooks are executable (Unix).'
-	commandLine 'git', 'config', 'core.hooksPath', '.githooks'
-
-	doLast {
-		def osName = System.getProperty('os.name').toLowerCase()
-		if (!osName.contains('win')) {
-			ant.chmod(file: '.githooks/pre-commit', perm: '755')
-		}
-	}
+    useJUnitPlatform()
 }

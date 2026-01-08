@@ -6,8 +6,6 @@ import com.betoniarka.biblioteka.book.Book;
 import com.betoniarka.biblioteka.book.BookRepository;
 import com.betoniarka.biblioteka.borrow.Borrow;
 import com.betoniarka.biblioteka.borrow.BorrowRepository;
-import com.betoniarka.biblioteka.category.Category;
-import com.betoniarka.biblioteka.category.CategoryRepository;
 import com.betoniarka.biblioteka.report.dto.BookAvailabilityDto;
 import com.betoniarka.biblioteka.report.dto.BookSummaryReportDto;
 import com.betoniarka.biblioteka.report.dto.MostPopularBookCategoryDto;
@@ -32,13 +30,24 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ExtendWith(MockitoExtension.class)
 public class BookReportServiceTest {
 
-    @Autowired @Qualifier("userRepoContentMock") List<AppUser> userRepoContentMock;
-    @Autowired @Qualifier("bookRepoContentMock") List<Book> bookRepoContentMock;
-    @Autowired @Qualifier("borrowRepoContentMock") List<Borrow> borrowRepoContentMock;
+    @Autowired
+    @Qualifier("userRepoContentMock")
+    List<AppUser> userRepoContentMock;
 
-    @MockitoBean AppUserRepository userRepository;
-    @MockitoBean BookRepository bookRepository;
-    @MockitoBean BorrowRepository borrowRepository;
+    @Autowired
+    @Qualifier("bookRepoContentMock")
+    List<Book> bookRepoContentMock;
+
+    @Autowired
+    @Qualifier("borrowRepoContentMock")
+    List<Borrow> borrowRepoContentMock;
+
+    @MockitoBean
+    AppUserRepository userRepository;
+    @MockitoBean
+    BookRepository bookRepository;
+    @MockitoBean
+    BorrowRepository borrowRepository;
 
     BookReportService service;
 
@@ -49,7 +58,8 @@ public class BookReportServiceTest {
         Mockito.when(this.borrowRepository.findAll()).thenReturn(borrowRepoContentMock);
         Mockito.when(borrowRepository.count()).thenReturn((long) borrowRepoContentMock.size());
 
-        this.service = new BookReportService(this.userRepository, this.bookRepository,  this.borrowRepository);
+        this.service =
+                new BookReportService(this.userRepository, this.bookRepository, this.borrowRepository);
     }
 
     @Test
@@ -74,19 +84,15 @@ public class BookReportServiceTest {
                 .extracting(MostPopularBookCategoryDto::categoryName)
                 .contains("Fantastyka");
         assertThat(popularCategories)
-                .anyMatch(dto ->
-                        dto.categoryName().equals("Dramat") ||
-                        dto.categoryName().equals("Dla dzieci")
-                );
+                .anyMatch(
+                        dto -> dto.categoryName().equals("Dramat") || dto.categoryName().equals("Dla dzieci"));
     }
 
     @Test
     void getMostReviewedForLimitOneShouldReturnCrimeAndPunishment() {
         int threshold = 1;
         List<MostReviewedBookDto> mostReviewedBooks = service.getMostReviewed(1);
-        assertThat(mostReviewedBooks)
-                .extracting(MostReviewedBookDto::bookId)
-                .containsExactly(7L);
+        assertThat(mostReviewedBooks).extracting(MostReviewedBookDto::bookId).containsExactly(7L);
 
         assertThat(mostReviewedBooks)
                 .extracting(MostReviewedBookDto::totalReviews)
@@ -98,11 +104,10 @@ public class BookReportServiceTest {
         BookSummaryReportDto summary = service.getSummary();
 
         assertThat(summary.totalCopies()).isEqualTo(22);
-        assertThat(summary.availableCopies()).isEqualTo( 17);
+        assertThat(summary.availableCopies()).isEqualTo(17);
         assertThat(summary.currentlyBorrowedCopies()).isEqualTo(5);
         assertThat(summary.categoriesPerBook()).isEqualTo(0);
         assertThat(summary.borrowsPerCopy()).isEqualTo(0);
         assertThat(summary.neverBorrowedCopies()).isEqualTo(1);
     }
-
 }

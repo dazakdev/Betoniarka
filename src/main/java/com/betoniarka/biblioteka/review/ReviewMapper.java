@@ -10,17 +10,17 @@ import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 
 @Mapper(
-    componentModel = "spring",
-    uses = {BookMapper.class, AppUserMapper.class})
+        componentModel = "spring",
+        uses = {BookMapper.class, AppUserMapper.class})
 public interface ReviewMapper {
 
-  @Mapping(target = "book", ignore = true)
-  @Mapping(target = "appUser", ignore = true)
-  Review toEntity(ReviewCreateDto source);
+    @Mapping(target = "book", ignore = true)
+    @Mapping(target = "appUser", ignore = true)
+    Review toEntity(ReviewCreateDto source);
 
-  @Mapping(target = "book", ignore = true)
-  @Mapping(target = "appUser", ignore = true)
-  void update(ReviewUpdateDto source, @MappingTarget Review target);
+    @Mapping(target = "book", ignore = true)
+    @Mapping(target = "appUser", ignore = true)
+    void update(ReviewUpdateDto source, @MappingTarget Review target);
 
-  ReviewResponseDto toDto(Review source);
+    ReviewResponseDto toDto(Review source);
 }

@@ -14,27 +14,28 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableMethodSecurity
 public class SecurityConfig {
 
-  @Bean
-  public PasswordEncoder passwordEncoder() {
-    return new BCryptPasswordEncoder();
-  }
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
 
-  @Bean
-  public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-    http.csrf(csrf -> csrf.disable())
-        .authorizeHttpRequests(
-            auth ->
-                auth.requestMatchers(
-                        "/auth/register",
-                        "/auth/login",
-                        "/v3/api-docs/**",
-                        "/swagger-ui/**",
-                        "/swagger-ui.html")
-                    .permitAll()
-                    .anyRequest()
-                    .authenticated())
-        .httpBasic(httpBasic -> {});
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http.csrf(csrf -> csrf.disable())
+                .authorizeHttpRequests(
+                        auth ->
+                                auth.requestMatchers(
+                                                "/auth/register",
+                                                "/auth/login",
+                                                "/v3/api-docs/**",
+                                                "/swagger-ui/**",
+                                                "/swagger-ui.html")
+                                        .permitAll()
+                                        .anyRequest()
+                                        .authenticated())
+                .httpBasic(httpBasic -> {
+                });
 
-    return http.build();
-  }
+        return http.build();
+    }
 }

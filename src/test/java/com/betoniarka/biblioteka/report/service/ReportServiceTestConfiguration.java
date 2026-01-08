@@ -19,180 +19,10 @@ import java.util.List;
 @TestConfiguration
 class ReportServiceTestConfiguration {
 
-    @Bean
-    @Qualifier("userRepoContentMock")
-    public List<AppUser> userRepoContentMock() {
-        return List.of(
-                createUser(1L, "jdoe", "John", "Doe", "jdoe@example.com", AppUserRole.APP_USER),
-                createUser(2L, "asmith", "Anna", "Smith", "asmith@example.com", AppUserRole.APP_USER),
-                createUser(3L, "bwayne", "Bruce", "Wayne", "bwayne@example.com", AppUserRole.ADMIN),
-                createUser(4L, "ckent", "Clark", "Kent", "ckent@example.com", AppUserRole.APP_USER),
-                createUser(5L, "dprince", "Diana", "Prince", "dprince@example.com", AppUserRole.APP_USER),
-                createUser(6L, "p.parker", "Peter", "Parker", "pparker@example.com", AppUserRole.APP_USER),
-                createUser(7L, "tstark", "Tony", "Stark", "tstark@example.com", AppUserRole.ADMIN),
-                createUser(8L, "srogers", "Steve", "Rogers", "srogers@example.com", AppUserRole.APP_USER)
-        );
-    }
-
-    @Bean
-    @Qualifier("categoryRepoContentMock")
-    public List<Category> categoryContentMock() {
-        return List.of(
-                createCategory(1L, "Fantastyka"),
-                createCategory(2L, "Kryminał"),
-                createCategory(3L, "Science-Fiction"),
-                createCategory(4L, "Dla dzieci"),
-                createCategory(5L, "Dramat"),
-                createCategory(6L, "Komedia"),
-                createCategory(7L, "Dla dorosłych"),
-                createCategory(8L, "Nauka"),
-                createCategory(9L, "Zdrowie"),
-                createCategory(10L, "Plastyka"),
-                createCategory(11L, "Muzyka"),
-                createCategory(12L, "Historia"),
-                createCategory(13L, "Biografia")
-        );
-    }
-
-    @Bean
-    @Qualifier("bookRepoContentMock")
-    public List<Book> bookRepoContentMock(
-        @Qualifier("categoryRepoContentMock") List<Category> categories
-    ) {
-        List<Book> books = List.of(
-                createBook(1L, "Władca Pierścieni", 3, List.of(categories.get(0))),
-                createBook(2L, "Harry Potter i Kamień Filozoficzny", 5, List.of(categories.get(0), categories.get(3))),
-                createBook(3L, "Hobbit", 2, List.of(categories.get(0))),
-                createBook(4L, "Gra o Tron", 4, List.of(categories.get(2))),
-                createBook(5L, "Lalka", 1, List.of(categories.get(4))),
-                createBook(6L, "Rok 1984", 3, List.of(categories.get(4))),
-                createBook(7L, "Zbrodnia i kara", 2, List.of(categories.get(1))),
-                createBook(8L, "Pieski małe dwa", 2, List.of(categories.get(3))),
-                createBook(9L, "Koziołek Matołek", 0, List.of(categories.get(3)))
-        );
-
-        books.forEach(b -> {
-            b.getCategories().forEach(category -> category.getBooks().add(b));
-        });
-
-        return books;
-    }
-
-    @Bean
-    @Qualifier("reviewRepoContentMock")
-    public List<Review> reviewRepoContentMock(
-            @Qualifier("userRepoContentMock") List<AppUser> users,
-            @Qualifier("bookRepoContentMock") List<Book> books
-    ) {
-        List<Review> reviews = List.of(
-                createReview(1L, 1, "Najgorsza lektura, nie polecam.",
-                        users.get(0), books.get(6)), // jdoe -> Zbrodnia i kara
-                createReview(2L, 5, "Absolutna klasyka fantasy. Uwielbiam!",
-                        users.get(1), books.get(0)), // asmith -> Władca Pierścieni
-                createReview(3L, 4, "Świetna książka, choć momentami za długa.",
-                        users.get(4), books.get(1)), // dprince -> Harry Potter
-                createReview(4L, 3, "Ciekawa, ale spodziewałem się czegoś więcej.",
-                        users.get(5), books.get(3)), // p.parker -> Gra o Tron
-                createReview(5L, 5, "Jedna z najlepszych książek, jakie czytałem.",
-                        users.get(2), books.get(5)), // bwayne -> Rok 1984
-                createReview(6L, 4, "Świetna dla młodszych czytelników.",
-                        users.get(7), books.get(8)), // srogers -> Koziołek Matołek
-                createReview(7L, 3, "Fajna książka, szkoda że tak mało egzemplarzy.",
-                        users.get(3), books.get(4)), // ckent -> Lalka
-                createReview(8L, 5, "Trudna, ale bardzo wartościowa lektura.",
-                        users.get(6), books.get(6))  // tstark -> Zbrodnia i kara
-        );
-
-        reviews.forEach(r -> {
-            r.getBook().getReviews().add(r);
-            r.getAppUser().getReviews().add(r);
-        });
-
-        return reviews;
-    }
-
-    @Bean
-    @Qualifier("borrowRepoContentMock")
-    public List<Borrow> borrowRepoContentMock(
-            @Qualifier("userRepoContentMock") List<AppUser> users,
-            @Qualifier("bookRepoContentMock") List<Book> books
-    ) {
-
-        List<Borrow> borrows = List.of(
-                // 2023
-                createBorrow(11L, users.get(2), books.get(3),
-                        Instant.parse("2023-09-01T09:00:00Z"),
-                        Duration.ofDays(20),
-                        Instant.parse("2023-09-25T09:00:00Z")), // oddane w terminie
-                createBorrow(12L, users.get(3), books.get(4),
-                        Instant.parse("2023-12-15T08:00:00Z"),
-                        Duration.ofDays(10),
-                        null), // nadal aktywne, spóźnione
-
-                // 2024
-                createBorrow(9L, users.get(0), books.get(1),
-                        Instant.parse("2024-06-15T10:00:00Z"),
-                        Duration.ofDays(30),
-                        Instant.parse("2024-07-20T12:00:00Z")), // oddane spóźnione
-                createBorrow(10L, users.get(1), books.get(2),
-                        Instant.parse("2024-12-20T08:00:00Z"),
-                        Duration.ofDays(15),
-                        Instant.parse("2025-01-10T10:00:00Z")), // oddane spóźnione
-
-                // 2025 – oddane na czas
-                createBorrow(1L, users.get(0), books.get(0),
-                        Instant.parse("2025-12-01T10:00:00Z"),
-                        Duration.ofDays(7),
-                        Instant.parse("2025-12-07T09:00:00Z")), // oddane w terminie
-                createBorrow(2L, users.get(1), books.get(1),
-                        Instant.parse("2025-11-15T12:00:00Z"),
-                        Duration.ofDays(10),
-                        Instant.parse("2025-11-25T10:00:00Z")), // oddane w terminie
-
-                // 2025-11 / 2025-12 – nadal aktywne, częściowo spóźnione
-                createBorrow(8L, users.get(7), books.get(7),
-                        Instant.parse("2025-11-30T15:00:00Z"),
-                        Duration.ofDays(20),
-                        null), // nadal aktywne, spóźnione
-                createBorrow(7L, users.get(6), books.get(6),
-                        Instant.parse("2025-12-25T09:00:00Z"),
-                        Duration.ofDays(10),
-                        null), // nadal aktywne, spóźnione
-
-                // 2026 – nadal aktywne, w terminie
-                createBorrow(5L, users.get(4), books.get(4),
-                        Instant.parse("2026-01-03T10:00:00Z"),
-                        Duration.ofDays(10),
-                        null), // nadal aktywne, w terminie
-                createBorrow(6L, users.get(5), books.get(5),
-                        Instant.parse("2026-01-05T12:00:00Z"),
-                        Duration.ofDays(7),
-                        null), // nadal aktywne, w terminie
-
-                // 2026 – oddane spóźnione
-                createBorrow(4L, users.get(3), books.get(3),
-                        Instant.parse("2026-01-01T08:00:00Z"),
-                        Duration.ofDays(5),
-                        Instant.parse("2026-01-10T08:00:00Z")) // oddane spóźnione
-        );
-
-        borrows.forEach(b -> {
-            b.getAppUser().getBorrows().add(b);
-            b.getBook().getBorrowedBy().add(b);
-        });
-
-        return borrows;
-    }
-
-    @Bean
-    @Qualifier("clockReportMock")
-    Clock clockReportMock() {
-         return Clock.fixed(Instant.parse("2026-01-07T06:00:00Z"), ZoneOffset.UTC);
-    }
-
     /*********************************************************************************************************************/
 
-    private static AppUser createUser(long id, String username, String firstname, String lastname, String email, AppUserRole role) {
+    private static AppUser createUser(
+            long id, String username, String firstname, String lastname, String email, AppUserRole role) {
         AppUser u = new AppUser(id);
         u.setUsername(username);
         u.setFirstname(firstname);
@@ -226,7 +56,13 @@ class ReportServiceTestConfiguration {
         return r;
     }
 
-    private static Borrow createBorrow(long id, AppUser user, Book book, Instant borrowedAt, Duration borrowDuration, Instant returnedAt) {
+    private static Borrow createBorrow(
+            long id,
+            AppUser user,
+            Book book,
+            Instant borrowedAt,
+            Duration borrowDuration,
+            Instant returnedAt) {
         Borrow b = new Borrow(id);
         b.setAppUser(user);
         b.setBook(book);
@@ -237,4 +73,243 @@ class ReportServiceTestConfiguration {
         return b;
     }
 
+    @Bean
+    @Qualifier("userRepoContentMock")
+    public List<AppUser> userRepoContentMock() {
+        return List.of(
+                createUser(1L, "jdoe", "John", "Doe", "jdoe@example.com", AppUserRole.APP_USER),
+                createUser(2L, "asmith", "Anna", "Smith", "asmith@example.com", AppUserRole.APP_USER),
+                createUser(3L, "bwayne", "Bruce", "Wayne", "bwayne@example.com", AppUserRole.ADMIN),
+                createUser(4L, "ckent", "Clark", "Kent", "ckent@example.com", AppUserRole.APP_USER),
+                createUser(5L, "dprince", "Diana", "Prince", "dprince@example.com", AppUserRole.APP_USER),
+                createUser(6L, "p.parker", "Peter", "Parker", "pparker@example.com", AppUserRole.APP_USER),
+                createUser(7L, "tstark", "Tony", "Stark", "tstark@example.com", AppUserRole.ADMIN),
+                createUser(8L, "srogers", "Steve", "Rogers", "srogers@example.com", AppUserRole.APP_USER));
+    }
+
+    @Bean
+    @Qualifier("categoryRepoContentMock")
+    public List<Category> categoryContentMock() {
+        return List.of(
+                createCategory(1L, "Fantastyka"),
+                createCategory(2L, "Kryminał"),
+                createCategory(3L, "Science-Fiction"),
+                createCategory(4L, "Dla dzieci"),
+                createCategory(5L, "Dramat"),
+                createCategory(6L, "Komedia"),
+                createCategory(7L, "Dla dorosłych"),
+                createCategory(8L, "Nauka"),
+                createCategory(9L, "Zdrowie"),
+                createCategory(10L, "Plastyka"),
+                createCategory(11L, "Muzyka"),
+                createCategory(12L, "Historia"),
+                createCategory(13L, "Biografia"));
+    }
+
+    @Bean
+    @Qualifier("bookRepoContentMock")
+    public List<Book> bookRepoContentMock(
+            @Qualifier("categoryRepoContentMock") List<Category> categories) {
+        List<Book> books =
+                List.of(
+                        createBook(1L, "Władca Pierścieni", 3, List.of(categories.get(0))),
+                        createBook(
+                                2L,
+                                "Harry Potter i Kamień Filozoficzny",
+                                5,
+                                List.of(categories.get(0), categories.get(3))),
+                        createBook(3L, "Hobbit", 2, List.of(categories.get(0))),
+                        createBook(4L, "Gra o Tron", 4, List.of(categories.get(2))),
+                        createBook(5L, "Lalka", 1, List.of(categories.get(4))),
+                        createBook(6L, "Rok 1984", 3, List.of(categories.get(4))),
+                        createBook(7L, "Zbrodnia i kara", 2, List.of(categories.get(1))),
+                        createBook(8L, "Pieski małe dwa", 2, List.of(categories.get(3))),
+                        createBook(9L, "Koziołek Matołek", 0, List.of(categories.get(3))));
+
+        books.forEach(
+                b -> {
+                    b.getCategories().forEach(category -> category.getBooks().add(b));
+                });
+
+        return books;
+    }
+
+    @Bean
+    @Qualifier("reviewRepoContentMock")
+    public List<Review> reviewRepoContentMock(
+            @Qualifier("userRepoContentMock") List<AppUser> users,
+            @Qualifier("bookRepoContentMock") List<Book> books) {
+        List<Review> reviews =
+                List.of(
+                        createReview(
+                                1L,
+                                1,
+                                "Najgorsza lektura, nie polecam.",
+                                users.get(0),
+                                books.get(6)), // jdoe -> Zbrodnia i kara
+                        createReview(
+                                2L,
+                                5,
+                                "Absolutna klasyka fantasy. Uwielbiam!",
+                                users.get(1),
+                                books.get(0)), // asmith -> Władca Pierścieni
+                        createReview(
+                                3L,
+                                4,
+                                "Świetna książka, choć momentami za długa.",
+                                users.get(4),
+                                books.get(1)), // dprince -> Harry Potter
+                        createReview(
+                                4L,
+                                3,
+                                "Ciekawa, ale spodziewałem się czegoś więcej.",
+                                users.get(5),
+                                books.get(3)), // p.parker -> Gra o Tron
+                        createReview(
+                                5L,
+                                5,
+                                "Jedna z najlepszych książek, jakie czytałem.",
+                                users.get(2),
+                                books.get(5)), // bwayne -> Rok 1984
+                        createReview(
+                                6L,
+                                4,
+                                "Świetna dla młodszych czytelników.",
+                                users.get(7),
+                                books.get(8)), // srogers -> Koziołek Matołek
+                        createReview(
+                                7L,
+                                3,
+                                "Fajna książka, szkoda że tak mało egzemplarzy.",
+                                users.get(3),
+                                books.get(4)), // ckent -> Lalka
+                        createReview(
+                                8L,
+                                5,
+                                "Trudna, ale bardzo wartościowa lektura.",
+                                users.get(6),
+                                books.get(6)) // tstark -> Zbrodnia i kara
+                );
+
+        reviews.forEach(
+                r -> {
+                    r.getBook().getReviews().add(r);
+                    r.getAppUser().getReviews().add(r);
+                });
+
+        return reviews;
+    }
+
+    @Bean
+    @Qualifier("borrowRepoContentMock")
+    public List<Borrow> borrowRepoContentMock(
+            @Qualifier("userRepoContentMock") List<AppUser> users,
+            @Qualifier("bookRepoContentMock") List<Book> books) {
+
+        List<Borrow> borrows =
+                List.of(
+                        // 2023
+                        createBorrow(
+                                11L,
+                                users.get(2),
+                                books.get(3),
+                                Instant.parse("2023-09-01T09:00:00Z"),
+                                Duration.ofDays(20),
+                                Instant.parse("2023-09-25T09:00:00Z")), // oddane w terminie
+                        createBorrow(
+                                12L,
+                                users.get(3),
+                                books.get(4),
+                                Instant.parse("2023-12-15T08:00:00Z"),
+                                Duration.ofDays(10),
+                                null), // nadal aktywne, spóźnione
+
+                        // 2024
+                        createBorrow(
+                                9L,
+                                users.get(0),
+                                books.get(1),
+                                Instant.parse("2024-06-15T10:00:00Z"),
+                                Duration.ofDays(30),
+                                Instant.parse("2024-07-20T12:00:00Z")), // oddane spóźnione
+                        createBorrow(
+                                10L,
+                                users.get(1),
+                                books.get(2),
+                                Instant.parse("2024-12-20T08:00:00Z"),
+                                Duration.ofDays(15),
+                                Instant.parse("2025-01-10T10:00:00Z")), // oddane spóźnione
+
+                        // 2025 – oddane na czas
+                        createBorrow(
+                                1L,
+                                users.get(0),
+                                books.get(0),
+                                Instant.parse("2025-12-01T10:00:00Z"),
+                                Duration.ofDays(7),
+                                Instant.parse("2025-12-07T09:00:00Z")), // oddane w terminie
+                        createBorrow(
+                                2L,
+                                users.get(1),
+                                books.get(1),
+                                Instant.parse("2025-11-15T12:00:00Z"),
+                                Duration.ofDays(10),
+                                Instant.parse("2025-11-25T10:00:00Z")), // oddane w terminie
+
+                        // 2025-11 / 2025-12 – nadal aktywne, częściowo spóźnione
+                        createBorrow(
+                                8L,
+                                users.get(7),
+                                books.get(7),
+                                Instant.parse("2025-11-30T15:00:00Z"),
+                                Duration.ofDays(20),
+                                null), // nadal aktywne, spóźnione
+                        createBorrow(
+                                7L,
+                                users.get(6),
+                                books.get(6),
+                                Instant.parse("2025-12-25T09:00:00Z"),
+                                Duration.ofDays(10),
+                                null), // nadal aktywne, spóźnione
+
+                        // 2026 – nadal aktywne, w terminie
+                        createBorrow(
+                                5L,
+                                users.get(4),
+                                books.get(4),
+                                Instant.parse("2026-01-03T10:00:00Z"),
+                                Duration.ofDays(10),
+                                null), // nadal aktywne, w terminie
+                        createBorrow(
+                                6L,
+                                users.get(5),
+                                books.get(5),
+                                Instant.parse("2026-01-05T12:00:00Z"),
+                                Duration.ofDays(7),
+                                null), // nadal aktywne, w terminie
+
+                        // 2026 – oddane spóźnione
+                        createBorrow(
+                                4L,
+                                users.get(3),
+                                books.get(3),
+                                Instant.parse("2026-01-01T08:00:00Z"),
+                                Duration.ofDays(5),
+                                Instant.parse("2026-01-10T08:00:00Z")) // oddane spóźnione
+                );
+
+        borrows.forEach(
+                b -> {
+                    b.getAppUser().getBorrows().add(b);
+                    b.getBook().getBorrowedBy().add(b);
+                });
+
+        return borrows;
+    }
+
+    @Bean
+    @Qualifier("clockReportMock")
+    Clock clockReportMock() {
+        return Clock.fixed(Instant.parse("2026-01-07T06:00:00Z"), ZoneOffset.UTC);
+    }
 }

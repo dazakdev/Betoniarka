@@ -1,31 +1,61 @@
 package com.betoniarka.biblioteka.category;
 
+import com.betoniarka.biblioteka.category.dto.CategoryCreateDto;
+import com.betoniarka.biblioteka.category.dto.CategoryResponseDto;
+import com.betoniarka.biblioteka.category.dto.CategoryUpdateDto;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
-// TODO service etc.
+import java.util.List;
 
 @RestController
 @RequestMapping("/categories")
 @RequiredArgsConstructor
 public class CategoryController {
 
-  private final CategoryRepository repository;
+    private final CategoryService service;
 
-  @PostMapping
-  @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
-  @ResponseStatus(HttpStatus.CREATED)
-  public Category create(@Valid @RequestBody Category category) {
-    return repository.save(category);
-  }
+    @GetMapping
+    public List<CategoryResponseDto> getAll() {
+        return service.getAll();
+    }
 
-  @DeleteMapping("/{id}")
-  @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
-  @ResponseStatus(HttpStatus.NO_CONTENT)
-  public void delete(@PathVariable Long id) {
-    repository.deleteById(id);
-  }
+    @GetMapping("/{id}")
+    public CategoryResponseDto getById(@PathVariable long id) {
+        return service.getById(id);
+    }
+
+    @PostMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
+    public ResponseEntity<CategoryResponseDto> create(
+            @Valid @RequestBody CategoryCreateDto requestDto) {
+        var responseDto = service.create(requestDto);
+
+        var location =
+                ServletUriComponentsBuilder.fromCurrentRequest()
+                        .path("/{id}")
+                        .buildAndExpand(responseDto.id())
+                        .toUri();
+
+        return ResponseEntity.created(location).body(responseDto);
+    }
+
+    @PatchMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
+    public CategoryResponseDto update(
+            @PathVariable long id, @Valid @RequestBody CategoryUpdateDto requestDto) {
+        return service.update(id, requestDto);
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(@PathVariable long id) {
+        service.delete(id);
+    }
 }

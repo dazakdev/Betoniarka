@@ -2,8 +2,6 @@ package com.betoniarka.biblioteka.report.service;
 
 import com.betoniarka.biblioteka.appuser.AppUser;
 import com.betoniarka.biblioteka.appuser.AppUserRepository;
-import com.betoniarka.biblioteka.book.Book;
-import com.betoniarka.biblioteka.book.BookRepository;
 import com.betoniarka.biblioteka.borrow.Borrow;
 import com.betoniarka.biblioteka.borrow.BorrowRepository;
 import com.betoniarka.biblioteka.report.dto.BorrowSummaryReportDto;
@@ -30,12 +28,22 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ExtendWith(MockitoExtension.class)
 public class BorrowReportServiceTest {
 
-    @Autowired @Qualifier("userRepoContentMock") List<AppUser> userRepoContentMock;
-    @Autowired @Qualifier("borrowRepoContentMock") List<Borrow> borrowRepoContentMock;
-    @Autowired @Qualifier("clockReportMock") Clock clock;
+    @Autowired
+    @Qualifier("userRepoContentMock")
+    List<AppUser> userRepoContentMock;
 
-    @MockitoBean AppUserRepository userRepository;
-    @MockitoBean BorrowRepository borrowRepository;
+    @Autowired
+    @Qualifier("borrowRepoContentMock")
+    List<Borrow> borrowRepoContentMock;
+
+    @Autowired
+    @Qualifier("clockReportMock")
+    Clock clock;
+
+    @MockitoBean
+    AppUserRepository userRepository;
+    @MockitoBean
+    BorrowRepository borrowRepository;
 
     BorrowReportService service;
 
@@ -67,8 +75,9 @@ public class BorrowReportServiceTest {
         Instant to = Instant.now(clock);
         List<MostBorrowedBookDto> mostBorrowed = service.getMostBorrowed(limit, from, to);
         assertThat(mostBorrowed).extracting(MostBorrowedBookDto::bookId).containsExactly(2L);
-        assertThat(mostBorrowed).extracting(MostBorrowedBookDto::title).containsExactly("Harry Potter i Kamień Filozoficzny");
+        assertThat(mostBorrowed)
+                .extracting(MostBorrowedBookDto::title)
+                .containsExactly("Harry Potter i Kamień Filozoficzny");
         assertThat(mostBorrowed).extracting(MostBorrowedBookDto::totalBorrows).containsExactly(2L);
     }
-
 }

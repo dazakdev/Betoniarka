@@ -8,13 +8,13 @@ import org.mapstruct.MappingTarget;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 
 @Mapper(
-    componentModel = "spring",
-    nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+        componentModel = "spring",
+        nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
 public interface AuthorMapper {
 
-  Author toEntity(AuthorCreateDto source);
+    Author toEntity(AuthorCreateDto source);
 
-  void update(AuthorUpdateDto source, @MappingTarget Author target);
+    void update(AuthorUpdateDto source, @MappingTarget Author target);
 
-  AuthorResponseDto toDto(Author source);
+    AuthorResponseDto toDto(Author source);
 }

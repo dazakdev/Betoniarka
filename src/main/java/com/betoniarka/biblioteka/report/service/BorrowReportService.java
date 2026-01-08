@@ -6,85 +6,87 @@ import com.betoniarka.biblioteka.borrow.Borrow;
 import com.betoniarka.biblioteka.borrow.BorrowRepository;
 import com.betoniarka.biblioteka.report.dto.BorrowSummaryReportDto;
 import com.betoniarka.biblioteka.report.dto.MostBorrowedBookDto;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class BorrowReportService {
 
-  private final AppUserRepository userRepository;
-  private final BorrowRepository borrowRepository;
+    private final AppUserRepository userRepository;
+    private final BorrowRepository borrowRepository;
 
-  public BorrowSummaryReportDto getSummary() {
+    public BorrowSummaryReportDto getSummary() {
 
-    var borrowList = borrowRepository.findAll().stream().toList();
+        var borrowList = borrowRepository.findAll().stream().toList();
 
-    long totalBorrows = borrowList.size();
-    long currentBorrows = borrowList.stream().filter(borrow -> !borrow.isReturned()).count();
+        long totalBorrows = borrowList.size();
+        long currentBorrows = borrowList.stream().filter(borrow -> !borrow.isReturned()).count();
 
-    long totalBorrowDurationDays =
-        borrowList.stream()
-            .filter(Borrow::isReturned)
-            .mapToLong(
-                borrow -> Duration.between(borrow.getBorrowedAt(), borrow.getReturnedAt()).toDays())
-            .sum();
+        long totalBorrowDurationDays =
+                borrowList.stream()
+                        .filter(Borrow::isReturned)
+                        .mapToLong(
+                                borrow -> Duration.between(borrow.getBorrowedAt(), borrow.getReturnedAt()).toDays())
+                        .sum();
 
-    long totalAppUsers = userRepository.count();
-    long averageBorrowDurationDays = totalAppUsers == 0 ? 0 : totalBorrowDurationDays / totalAppUsers;
+        long totalAppUsers = userRepository.count();
+        long averageBorrowDurationDays =
+                totalAppUsers == 0 ? 0 : totalBorrowDurationDays / totalAppUsers;
 
-    long borrowsLastWeek =
-        borrowList.stream()
-            .filter(borrow -> Duration.between(borrow.getBorrowedAt(), Instant.now()).toDays() <= 7)
-            .count();
-    long borrowsLastMonth =
-        borrowList.stream()
-            .filter(
-                borrow -> Duration.between(borrow.getBorrowedAt(), Instant.now()).toDays() <= 31)
-            .count();
-    long borrowsLastYear =
-        borrowList.stream()
-            .filter(
-                borrow -> Duration.between(borrow.getBorrowedAt(), Instant.now()).toDays() <= 365)
-            .count();
+        long borrowsLastWeek =
+                borrowList.stream()
+                        .filter(borrow -> Duration.between(borrow.getBorrowedAt(), Instant.now()).toDays() <= 7)
+                        .count();
+        long borrowsLastMonth =
+                borrowList.stream()
+                        .filter(
+                                borrow -> Duration.between(borrow.getBorrowedAt(), Instant.now()).toDays() <= 31)
+                        .count();
+        long borrowsLastYear =
+                borrowList.stream()
+                        .filter(
+                                borrow -> Duration.between(borrow.getBorrowedAt(), Instant.now()).toDays() <= 365)
+                        .count();
 
-    return new BorrowSummaryReportDto(
-        totalBorrows,
-        currentBorrows,
-        averageBorrowDurationDays,
-        borrowsLastWeek,
-        borrowsLastMonth,
-        borrowsLastYear);
-  }
+        return new BorrowSummaryReportDto(
+                totalBorrows,
+                currentBorrows,
+                averageBorrowDurationDays,
+                borrowsLastWeek,
+                borrowsLastMonth,
+                borrowsLastYear);
+    }
 
-  public List<MostBorrowedBookDto> getMostBorrowed(int limit, Instant from, Instant to) {
+    public List<MostBorrowedBookDto> getMostBorrowed(int limit, Instant from, Instant to) {
 
-    boolean timePeriodNotSpecified = (from == null || to == null);
+        boolean timePeriodNotSpecified = (from == null || to == null);
 
-    var bookBorrowCountMap =
-        borrowRepository.findAll().stream()
-            .filter(
-                borrow ->
-                    timePeriodNotSpecified
-                        || (borrow.getBorrowedAt().isAfter(from)
-                            && borrow.getBorrowedAt().isBefore(to)))
-            .map(Borrow::getBook)
-            .collect(Collectors.groupingBy(book -> book, Collectors.counting()));
+        var bookBorrowCountMap =
+                borrowRepository.findAll().stream()
+                        .filter(
+                                borrow ->
+                                        timePeriodNotSpecified
+                                                || (borrow.getBorrowedAt().isAfter(from)
+                                                && borrow.getBorrowedAt().isBefore(to)))
+                        .map(Borrow::getBook)
+                        .collect(Collectors.groupingBy(book -> book, Collectors.counting()));
 
-    return bookBorrowCountMap.entrySet().stream()
-        .sorted(Map.Entry.<Book, Long>comparingByValue().reversed())
-        .limit(limit)
-        .map(
-            entry ->
-                new MostBorrowedBookDto(
-                    entry.getKey().getId(), entry.getKey().getTitle(), entry.getValue()))
-        .toList();
-  }
+        return bookBorrowCountMap.entrySet().stream()
+                .sorted(Map.Entry.<Book, Long>comparingByValue().reversed())
+                .limit(limit)
+                .map(
+                        entry ->
+                                new MostBorrowedBookDto(
+                                        entry.getKey().getId(), entry.getKey().getTitle(), entry.getValue()))
+                .toList();
+    }
 }

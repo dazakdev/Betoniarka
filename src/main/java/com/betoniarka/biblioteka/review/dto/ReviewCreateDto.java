@@ -5,4 +5,5 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 
 public record ReviewCreateDto(
-    @Min(1) @Max(5) int rating, @NotBlank String comment, Long appUserId, Long bookId) {}
+        @Min(1) @Max(5) int rating, @NotBlank String comment, Long appUserId, Long bookId) {
+}
