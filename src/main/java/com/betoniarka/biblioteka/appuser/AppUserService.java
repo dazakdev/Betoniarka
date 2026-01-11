@@ -89,6 +89,16 @@ public class AppUserService {
         return adminUpdate(existingEntity.getId(), mapper.toAdminUpdateDto(updateDto));
     }
 
+    public AppUserResponseDto getByUsername(String username) {
+        return repository
+                .findByUsername(username)
+                .map(mapper::toDto)
+                .orElseThrow(
+                        () ->
+                                new ResourceNotFoundException(
+                                        "AppUser with username '%s' not found".formatted(username)));
+    }
+
     public void deleteByUsername(String username) {
         deleteById(
                 repository

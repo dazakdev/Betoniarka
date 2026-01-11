@@ -1,5 +1,6 @@
 package com.betoniarka.biblioteka.book;
 
+import com.betoniarka.biblioteka.appuser.AppUser;
 import com.betoniarka.biblioteka.author.Author;
 import com.betoniarka.biblioteka.borrow.Borrow;
 import com.betoniarka.biblioteka.category.Category;
@@ -92,6 +93,19 @@ public class Book {
 
     public void incrementCount() {
         this.count++;
+    }
+
+    public boolean isAvailableForUser(AppUser user) {
+        if (this.queue.size() < this.count) return true;
+        var userQueueIndex = this.queue.stream().map(QueueEntry::getAppUser).toList().indexOf(user);
+        return userQueueIndex != -1 && userQueueIndex < this.count;
+    }
+
+    public void removeFromQueue(AppUser user) {
+        var queueEntryList = this.queue.stream().filter(entry -> entry.getAppUser() == user).toList();
+        if (!queueEntryList.isEmpty()) {
+            this.queue.remove(queueEntryList.getFirst());
+        }
     }
 
     @Override

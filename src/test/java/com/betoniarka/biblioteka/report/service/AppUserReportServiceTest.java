@@ -162,4 +162,17 @@ class AppUserReportServiceTest {
         assertThat(summary.activeAppUsersLastWeek()).isEqualTo(5);
         assertThat(summary.activeAppUsersLastMonth()).isEqualTo(6);
     }
+
+    @Test
+    void getSummaryShouldNotCrashWhenUserHasNoBorrows() {
+        AppUser userWithoutBorrows = new AppUser(99L);
+        userWithoutBorrows.setUsername("noborrows");
+        Mockito.when(userRepository.findAll()).thenReturn(List.of(userWithoutBorrows));
+        Mockito.when(borrowRepository.count()).thenReturn(0L);
+        Mockito.when(borrowRepository.findAll()).thenReturn(List.of());
+
+        AppUserSummaryReportDto summary = service.getSummary();
+        assertThat(summary.totalAppUsers()).isEqualTo(1);
+        assertThat(summary.totalAppUsersWithBorrows()).isEqualTo(0);
+    }
 }

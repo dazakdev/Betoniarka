@@ -34,18 +34,18 @@ public class BookReportService {
                 userRepository.findAll().stream().mapToLong(user -> user.getCurrentBorrows().size()).sum();
         long totalBooks = available + borrowed;
 
-        double availabilityProportion = ((double) available / totalBooks) * 100;
-        double borrowProportion = ((double) borrowed / totalBooks) * 100;
+        double availabilityProportion = totalBooks == 0 ? 0 : ((double) available / totalBooks) * 100;
+        double borrowProportion = totalBooks == 0 ? 0 : ((double) borrowed / totalBooks) * 100;
 
         long neverBorrowed =
                 bookRepository.findAll().stream().filter(book -> book.getBorrowedBy().isEmpty()).count();
 
         long totalBorrows = borrowRepository.count();
-        long borrowPerCopy = totalBorrows / totalBooks;
+        long borrowPerCopy = totalBooks == 0 ? 0 : totalBorrows / totalBooks;
 
         long totalCategories =
                 bookRepository.findAll().stream().mapToLong(book -> book.getCategories().size()).sum();
-        long categoriesPerBook = totalCategories / totalBooks;
+        long categoriesPerBook = totalBooks == 0 ? 0 : totalCategories / totalBooks;
 
         return new BookSummaryReportDto(
                 totalBooks,

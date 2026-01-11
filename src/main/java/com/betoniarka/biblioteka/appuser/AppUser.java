@@ -3,6 +3,7 @@ package com.betoniarka.biblioteka.appuser;
 import com.betoniarka.biblioteka.book.Book;
 import com.betoniarka.biblioteka.borrow.Borrow;
 import com.betoniarka.biblioteka.exceptions.ResourceConflictException;
+import com.betoniarka.biblioteka.notifications.Notification;
 import com.betoniarka.biblioteka.queueentry.QueueEntry;
 import com.betoniarka.biblioteka.review.Review;
 import jakarta.persistence.*;
@@ -12,7 +13,6 @@ import lombok.Setter;
 
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 
@@ -29,6 +29,10 @@ public class AppUser {
     @Getter
     @OneToMany(mappedBy = "appUser", cascade = CascadeType.ALL)
     private final List<Review> reviews = new ArrayList<>();
+    @Getter
+    @OneToMany(mappedBy = "appUser", cascade = CascadeType.ALL)
+    private final List<Notification> notifications = new ArrayList<>();
+
     @Getter
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -79,18 +83,12 @@ public class AppUser {
             throw new ResourceConflictException(
                     "User '%s' already borrowed book '%s'".formatted(this.username, book.getTitle()));
 
-        QueueEntry firstInQueue =
-                book.getQueue().stream().min(Comparator.comparing(QueueEntry::getTimestamp)).orElse(null);
-
-        if (firstInQueue != null && firstInQueue.getAppUser() != this) {
+        if (!book.isAvailableForUser(this)) {
             throw new ResourceConflictException(
                     "Book '%s' is reserved by another user (queue)".formatted(book.getTitle()));
         }
 
-        if (firstInQueue != null) {
-            book.getQueue().remove(firstInQueue);
-            this.queuedBooks.remove(firstInQueue);
-        }
+        book.removeFromQueue(this);
 
         book.decrementCount();
 
@@ -112,6 +110,32 @@ public class AppUser {
 
         borrow.getBook().incrementCount();
         borrow.setReturnedAt(Instant.now());
+    }
+
+    public void joinQueue(QueueEntry entry, Book book) {
+        if (queuedBooks.size() >= 3)
+            throw new ResourceConflictException(
+                    "User '%s' already queued for 3 books".formatted(this.username));
+
+        if (queuedBooks.stream().anyMatch(b -> b.getBook().equals(book)))
+            throw new ResourceConflictException(
+                    "User '%s' already queued for book '%s'".formatted(this.username, book.getTitle()));
+
+        entry.setAppUser(this);
+        entry.setBook(book);
+        entry.setTimestamp(Instant.now());
+
+        this.queuedBooks.add(entry);
+        book.getQueue().add(entry);
+    }
+
+    public void leaveQueue(QueueEntry entry) {
+        if (entry.getAppUser() != this)
+            throw new IllegalStateException(
+                    "Queue Entry '%d' belongs to another user".formatted(entry.getId()));
+
+        this.queuedBooks.remove(entry);
+        entry.getBook().getQueue().remove(entry);
     }
 
     public List<Borrow> getCurrentBorrows() {
@@ -165,6 +189,11 @@ public class AppUser {
 
         review.getBook().getReviews().remove(review);
         this.reviews.remove(review);
+    }
+
+    public void addNotification(Notification notification) {
+        notification.setAppUser(this);
+        this.notifications.add(notification);
     }
 
     @Override

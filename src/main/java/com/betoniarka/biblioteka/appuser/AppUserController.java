@@ -75,4 +75,9 @@ public class AppUserController {
     public void deleteMe(@AuthenticationPrincipal UserDetails principal) {
         service.deleteByUsername(principal.getUsername());
     }
+
+    @GetMapping("/me")
+    public AppUserResponseDto getMe(@AuthenticationPrincipal UserDetails principal) {
+        return service.getByUsername(principal.getUsername());
+    }
 }

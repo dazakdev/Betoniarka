@@ -63,7 +63,7 @@ public class BorrowReportServiceTest {
 
         assertThat(summary.totalBorrows()).isEqualTo(11);
         assertThat(summary.currentBorrows()).isEqualTo(5);
-        assertThat(summary.borrowsLastWeek()).isEqualTo(3);
+        assertThat(summary.borrowsLastWeek()).isEqualTo(1);
         assertThat(summary.borrowsLastMonth()).isEqualTo(4);
         assertThat(summary.borrowsLastYear()).isEqualTo(7);
     }

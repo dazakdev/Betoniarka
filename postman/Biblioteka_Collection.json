@@ -1,804 +1,1390 @@
 {
-  "info": {
-    "_postman_id": "8a8f8b8c-1a1b-1c1d-1e1f-1g1h1i1j1k1l",
-    "name": "Biblioteka API",
-    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
-  },
-  "item": [
-    {
-      "name": "1. Admin",
-      "auth": {
-        "type": "basic",
-        "basic": [
-          {
-            "key": "password",
-            "value": "{{admin_password}}",
-            "type": "string"
-          },
-          {
-            "key": "username",
-            "value": "{{admin_username}}",
-            "type": "string"
-          }
-        ]
-      },
-      "item": [
-        {
-          "name": "Auth",
-          "item": [
-            {
-              "name": "Admin Login",
-              "request": {
-                "method": "GET",
-                "header": [],
-                "url": {
-                  "raw": "{{baseUrl}}/auth/login",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "auth",
-                    "login"
-                  ]
-                }
-              },
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "exec": [
-                      "pm.test(\"Status code is 200\", function () {",
-                      "    pm.response.to.have.status(200);",
-                      "});"
-                    ],
-                    "type": "text/javascript"
-                  }
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "name": "User Management",
-          "item": [
-            {
-              "name": "Create Employee",
-              "request": {
-                "method": "POST",
-                "header": [],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n    \"username\": \"{{employee_username}}\",\n    \"firstname\": \"Jane\",\n    \"lastname\": \"Staff\",\n    \"email\": \"jane.staff@example.com\",\n    \"password\": \"{{employee_password}}\",\n    \"role\": \"EMPLOYEE\"\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                },
-                "url": {
-                  "raw": "{{baseUrl}}/appusers",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "appusers"
-                  ]
-                }
-              },
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "exec": [
-                      "pm.test(\"Status code is 201\", function () {",
-                      "    pm.response.to.have.status(201);",
-                      "});",
-                      "var jsonData = pm.response.json();",
-                      "pm.collectionVariables.set(\"employee_id\", jsonData.id);"
-                    ],
-                    "type": "text/javascript"
-                  }
-                }
-              ]
-            },
-            {
-              "name": "Modify Employee",
-              "request": {
-                "method": "PATCH",
-                "header": [],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n    \"firstname\": \"Jane Updated\",\n    \"lastname\": \"Staff Updated\"\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                },
-                "url": {
-                  "raw": "{{baseUrl}}/appusers/{{employee_id}}",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "appusers",
-                    "{{employee_id}}"
-                  ]
-                }
-              },
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "exec": [
-                      "pm.test(\"Status code is 200\", function () {",
-                      "    pm.response.to.have.status(200);",
-                      "});",
-                      "pm.test(\"Firstname updated\", function() {",
-                      "    pm.expect(pm.response.json().firstname).to.eql('Jane Updated');",
-                      "});"
-                    ],
-                    "type": "text/javascript"
-                  }
-                }
-              ]
-            },
-            {
-              "name": "Get All Users",
-              "request": {
-                "method": "GET",
-                "header": [],
-                "url": {
-                  "raw": "{{baseUrl}}/appusers",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "appusers"
-                  ]
-                }
-              },
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "exec": [
-                      "pm.test(\"Status code is 200\", function () {",
-                      "    pm.response.to.have.status(200);",
-                      "});"
-                    ],
-                    "type": "text/javascript"
-                  }
-                }
-              ]
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "name": "2. Employee",
-      "auth": {
-        "type": "basic",
-        "basic": [
-          {
-            "key": "password",
-            "value": "{{employee_password}}",
-            "type": "string"
-          },
-          {
-            "key": "username",
-            "value": "{{employee_username}}",
-            "type": "string"
-          }
-        ]
-      },
-      "item": [
-        {
-          "name": "Auth",
-          "item": [
-            {
-              "name": "Employee Login",
-              "request": {
-                "method": "GET",
-                "header": [],
-                "url": {
-                  "raw": "{{baseUrl}}/auth/login",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "auth",
-                    "login"
-                  ]
-                }
-              },
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "exec": [
-                      "pm.test(\"Status code is 200\", function () {",
-                      "    pm.response.to.have.status(200);",
-                      "});"
-                    ],
-                    "type": "text/javascript"
-                  }
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "name": "Catalog Management",
-          "item": [
-            {
-              "name": "Create Category",
-              "request": {
-                "method": "POST",
-                "header": [],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n    \"name\": \"Testing Category\"\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                },
-                "url": {
-                  "raw": "{{baseUrl}}/categories",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "categories"
-                  ]
-                }
-              },
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "exec": [
-                      "pm.test(\"Status code is 201\", function () {",
-                      "    pm.response.to.have.status(201);",
-                      "});",
-                      "var jsonData = pm.response.json();",
-                      "pm.collectionVariables.set(\"admin_category_id\", jsonData.id);"
-                    ],
-                    "type": "text/javascript"
-                  }
-                }
-              ]
-            },
-            {
-              "name": "Create Book with Category",
-              "request": {
-                "method": "POST",
-                "header": [],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n    \"title\": \"Employee's Guide to Java\",\n    \"count\": 5,\n    \"categoryIds\": [{{admin_category_id}}]\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                },
-                "url": {
-                  "raw": "{{baseUrl}}/books",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "books"
-                  ]
-                }
-              },
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "exec": [
-                      "pm.test(\"Status code is 201\", function () {",
-                      "    pm.response.to.have.status(201);",
-                      "});",
-                      "var jsonData = pm.response.json();",
-                      "pm.collectionVariables.set(\"admin_book_id\", jsonData.id);"
-                    ],
-                    "type": "text/javascript"
-                  }
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "name": "Borrow Workflow",
-          "item": [
-            {
-              "name": "Register New User for Borrowing",
-              "request": {
-                "method": "POST",
-                "header": [],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n    \"username\": \"borrower_test\",\n    \"firstname\": \"Bob\",\n    \"lastname\": \"Borrower\",\n    \"email\": \"bob.borrower@example.com\",\n    \"password\": \"password123\"\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                },
-                "url": {
-                  "raw": "{{baseUrl}}/auth/register",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "auth",
-                    "register"
-                  ]
-                }
-              },
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "exec": [
-                      "pm.test(\"Status code is 204\", function () {",
-                      "    pm.response.to.have.status(204);",
-                      "});"
-                    ],
-                    "type": "text/javascript"
-                  }
-                }
-              ]
-            },
-            {
-              "name": "Find User ID",
-              "request": {
-                "method": "GET",
-                "header": [],
-                "url": {
-                  "raw": "{{baseUrl}}/appusers",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "appusers"
-                  ]
-                }
-              },
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "exec": [
-                      "var jsonData = pm.response.json();",
-                      "var user = jsonData.find(u => u.username === 'borrower_test');",
-                      "pm.collectionVariables.set(\"borrower_user_id\", user.id);"
-                    ],
-                    "type": "text/javascript"
-                  }
-                }
-              ]
-            },
-            {
-              "name": "Create Borrow Record",
-              "request": {
-                "method": "POST",
-                "header": [],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n    \"bookId\": {{admin_book_id}},\n    \"appUserId\": {{borrower_user_id}},\n    \"borrowDuration\": \"P14D\"\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                },
-                "url": {
-                  "raw": "{{baseUrl}}/borrows",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "borrows"
-                  ]
-                }
-              },
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "exec": [
-                      "pm.test(\"Status code is 201\", function () {",
-                      "    pm.response.to.have.status(201);",
-                      "});",
-                      "var jsonData = pm.response.json();",
-                      "pm.collectionVariables.set(\"active_borrow_id\", jsonData.id);"
-                    ],
-                    "type": "text/javascript"
-                  }
-                }
-              ]
-            },
-            {
-              "name": "Process Return",
-              "request": {
-                "method": "POST",
-                "header": [],
-                "url": {
-                  "raw": "{{baseUrl}}/borrows/{{active_borrow_id}}/return",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "borrows",
-                    "{{active_borrow_id}}",
-                    "return"
-                  ]
-                }
-              },
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "exec": [
-                      "pm.test(\"Status code is 200\", function () {",
-                      "    pm.response.to.have.status(200);",
-                      "});",
-                      "pm.test(\"Returned date is set\", function () {",
-                      "    pm.expect(pm.response.json().returnedAt).to.not.be.null;",
-                      "});"
-                    ],
-                    "type": "text/javascript"
-                  }
-                }
-              ]
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "name": "3. User",
-      "auth": {
-        "type": "basic",
-        "basic": [
-          {
-            "key": "password",
-            "value": "{{user_password}}",
-            "type": "string"
-          },
-          {
-            "key": "username",
-            "value": "{{user_username}}",
-            "type": "string"
-          }
-        ]
-      },
-      "item": [
-        {
-          "name": "Auth",
-          "item": [
-            {
-              "name": "Register User",
-              "request": {
-                "auth": {
-                  "type": "noauth"
-                },
-                "method": "POST",
-                "header": [],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n    \"username\": \"{{user_username}}\",\n    \"firstname\": \"John\",\n    \"lastname\": \"Doe\",\n    \"email\": \"john.doe.user@example.com\",\n    \"password\": \"{{user_password}}\"\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                },
-                "url": {
-                  "raw": "{{baseUrl}}/auth/register",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "auth",
-                    "register"
-                  ]
-                }
-              },
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "exec": [
-                      "pm.test(\"Status code is 204\", function () {",
-                      "    pm.response.to.have.status(204);",
-                      "});"
-                    ],
-                    "type": "text/javascript"
-                  }
-                }
-              ]
-            },
-            {
-              "name": "User Login",
-              "request": {
-                "method": "GET",
-                "header": [],
-                "url": {
-                  "raw": "{{baseUrl}}/auth/login",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "auth",
-                    "login"
-                  ]
-                }
-              },
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "exec": [
-                      "pm.test(\"Status code is 200\", function () {",
-                      "    pm.response.to.have.status(200);",
-                      "});"
-                    ],
-                    "type": "text/javascript"
-                  }
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "name": "User Actions",
-          "item": [
-            {
-              "name": "Browse Books",
-              "request": {
-                "method": "GET",
-                "header": [],
-                "url": {
-                  "raw": "{{baseUrl}}/books",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "books"
-                  ]
-                }
-              },
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "exec": [
-                      "pm.test(\"Status code is 200\", function () {",
-                      "    pm.response.to.have.status(200);",
-                      "});",
-                      "pm.test(\"Response is array\", function() {",
-                      "    pm.expect(pm.response.json()).to.be.an('array');",
-                      "});"
-                    ],
-                    "type": "text/javascript"
-                  }
-                }
-              ]
-            },
-            {
-              "name": "Browse Categories",
-              "request": {
-                "method": "GET",
-                "header": [],
-                "url": {
-                  "raw": "{{baseUrl}}/categories",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "categories"
-                  ]
-                }
-              },
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "exec": [
-                      "pm.test(\"Status code is 200\", function () {",
-                      "    pm.response.to.have.status(200);",
-                      "});"
-                    ],
-                    "type": "text/javascript"
-                  }
-                }
-              ]
-            },
-            {
-              "name": "Update Profile",
-              "request": {
-                "method": "PATCH",
-                "header": [],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n    \"firstname\": \"Johnny\"\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                },
-                "url": {
-                  "raw": "{{baseUrl}}/appusers/me",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "appusers",
-                    "me"
-                  ]
-                }
-              },
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "exec": [
-                      "pm.test(\"Status code is 200\", function () {",
-                      "    pm.response.to.have.status(200);",
-                      "});",
-                      "pm.test(\"Firstname updated\", function() {",
-                      "    pm.expect(pm.response.json().firstname).to.eql('Johnny');",
-                      "});"
-                    ],
-                    "type": "text/javascript"
-                  }
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "name": "Negative Tests (Security)",
-          "item": [
-            {
-              "name": "User trying to create book (Forbidden)",
-              "request": {
-                "method": "POST",
-                "header": [],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n    \"title\": \"Malicious Book\",\n    \"count\": 1\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                },
-                "url": {
-                  "raw": "{{baseUrl}}/books",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "books"
-                  ]
-                }
-              },
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "exec": [
-                      "pm.test(\"Status code is 403\", function () {",
-                      "    pm.response.to.have.status(403);",
-                      "});"
-                    ],
-                    "type": "text/javascript"
-                  }
-                }
-              ]
-            },
-            {
-              "name": "User trying to see all users (Forbidden)",
-              "request": {
-                "method": "GET",
-                "header": [],
-                "url": {
-                  "raw": "{{baseUrl}}/appusers",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "appusers"
-                  ]
-                }
-              },
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "exec": [
-                      "pm.test(\"Status code is 403\", function () {",
-                      "    pm.response.to.have.status(403);",
-                      "});"
-                    ],
-                    "type": "text/javascript"
-                  }
-                }
-              ]
-            },
-            {
-              "name": "User trying to create borrow (Forbidden)",
-              "request": {
-                "method": "POST",
-                "header": [],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n    \"bookId\": 1,\n    \"appUserId\": 1,\n    \"borrowDuration\": \"P14D\"\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                },
-                "url": {
-                  "raw": "{{baseUrl}}/borrows",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "borrows"
-                  ]
-                }
-              },
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "exec": [
-                      "pm.test(\"Status code is 403\", function () {",
-                      "    pm.response.to.have.status(403);",
-                      "});"
-                    ],
-                    "type": "text/javascript"
-                  }
-                }
-              ]
-            }
-          ]
-        }
-      ]
-    }
-  ],
-  "variable": [
-    {
-      "key": "employee_id",
-      "value": ""
-    },
-    {
-      "key": "admin_category_id",
-      "value": ""
-    },
-    {
-      "key": "admin_book_id",
-      "value": ""
-    },
-    {
-      "key": "borrower_user_id",
-      "value": ""
-    },
-    {
-      "key": "active_borrow_id",
-      "value": ""
-    }
-  ]
+	"info": {
+		"_postman_id": "a86943a2-3677-4e16-b898-88522c98a6a9",
+		"name": "Biblioteka API Copy",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "39817769"
+	},
+	"item": [
+		{
+			"name": "1. Admin",
+			"item": [
+				{
+					"name": "Auth",
+					"item": [
+						{
+							"name": "Admin Login",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/auth/login",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"auth",
+										"login"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "User Management",
+					"item": [
+						{
+							"name": "Create Employee",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 201\", function () {",
+											"    pm.response.to.have.status(201);",
+											"});",
+											"var jsonData = pm.response.json();",
+											"pm.collectionVariables.set(\"employee_id\", jsonData.id);"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"username\": \"{{employee_username}}\",\n    \"firstname\": \"Jane\",\n    \"lastname\": \"Staff\",\n    \"email\": \"jane.staff@example.com\",\n    \"password\": \"{{employee_password}}\",\n    \"role\": \"EMPLOYEE\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/appusers",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"appusers"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Modify Employee",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"pm.test(\"Firstname updated\", function() {",
+											"    pm.expect(pm.response.json().firstname).to.eql('Jane Updated');",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"firstname\": \"Jane Updated\",\n    \"lastname\": \"Staff Updated\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/appusers/{{employee_id}}",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"appusers",
+										"{{employee_id}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get All Users",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/appusers",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"appusers"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			],
+			"auth": {
+				"type": "basic",
+				"basic": [
+					{
+						"key": "password",
+						"value": "{{admin_password}}",
+						"type": "string"
+					},
+					{
+						"key": "username",
+						"value": "{{admin_username}}",
+						"type": "string"
+					}
+				]
+			}
+		},
+		{
+			"name": "2. Employee",
+			"item": [
+				{
+					"name": "Auth",
+					"item": [
+						{
+							"name": "Employee Login",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/auth/login",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"auth",
+										"login"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Catalog Management",
+					"item": [
+						{
+							"name": "Create Category",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 201\", function () {",
+											"    pm.response.to.have.status(201);",
+											"});",
+											"var jsonData = pm.response.json();",
+											"pm.collectionVariables.set(\"admin_category_id\", jsonData.id);"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\": \"Testing Category\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/categories",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"categories"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Create Author",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 201\", function () {",
+											"    pm.response.to.have.status(201);",
+											"});",
+											"var jsonData = pm.response.json();",
+											"pm.collectionVariables.set(\"admin_author_id\", jsonData.id);"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\": \"Famous Author\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/authors",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"authors"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Create Book with Category and Author",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 201\", function () {",
+											"    pm.response.to.have.status(201);",
+											"});",
+											"var jsonData = pm.response.json();",
+											"pm.collectionVariables.set(\"admin_book_id\", jsonData.id);"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"title\": \"Employee's Guide to Java\",\n    \"count\": 1,\n    \"authorId\": {{admin_author_id}},\n    \"categoryIds\": [{{admin_category_id}}]\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/books",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"books"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Borrow Workflow",
+					"item": [
+						{
+							"name": "Register New User for Borrowing",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 204\", function () {",
+											"    pm.response.to.have.status(204);",
+											"});"
+										],
+										"type": "text/javascript",
+										"packages": {},
+										"requests": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"username\": \"{{borrow_user_username}}\",\n    \"firstname\": \"Bob\",\n    \"lastname\": \"Borrower\",\n    \"email\": \"bob.borrower@example.com\",\n    \"password\": \"{{borrow_user_password}}\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/auth/register",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"auth",
+										"register"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Find User ID",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();",
+											"var user = jsonData.find(u => u.username === pm.environment.get(\"borrow_user_username\"));",
+											"pm.environment.set(\"borrow_user_id\", user.id);"
+										],
+										"type": "text/javascript",
+										"packages": {},
+										"requests": {}
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/appusers",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"appusers"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Create Borrow Record",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 201\", function () {",
+											"    pm.response.to.have.status(201);",
+											"});",
+											"var jsonData = pm.response.json();",
+											"pm.collectionVariables.set(\"active_borrow_id\", jsonData.id);"
+										],
+										"type": "text/javascript",
+										"packages": {},
+										"requests": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"bookId\": {{admin_book_id}},\n    \"appUserId\": {{borrow_user_id}},\n    \"borrowDuration\": \"P14D\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/borrows",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"borrows"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Queue Management",
+					"item": [
+						{
+							"name": "Register New User for Queue Test",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 204\", function () {",
+											"    pm.response.to.have.status(204);",
+											"});"
+										],
+										"type": "text/javascript",
+										"packages": {},
+										"requests": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"username\": \"{{queue_user_username}}\",\n    \"firstname\": \"Alice\",\n    \"lastname\": \"Doe\",\n    \"email\": \"alice.doe@example.com\",\n    \"password\": \"{{queue_user_password}}\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/auth/register",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"auth",
+										"register"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Find User ID",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();",
+											"var user = jsonData.find(u => u.username === pm.environment.get(\"queue_user_username\"));",
+											"pm.environment.set(\"queue_user_id\", user.id);"
+										],
+										"type": "text/javascript",
+										"packages": {},
+										"requests": {}
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/appusers",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"appusers"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Join Queue as Queue User",
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "password",
+											"value": "{{queue_user_password}}",
+											"type": "string"
+										},
+										{
+											"key": "username",
+											"value": "{{queue_user_username}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/books/{{admin_book_id}}/queue/join",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"books",
+										"{{admin_book_id}}",
+										"queue",
+										"join"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Process Return",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"pm.test(\"Returned date is set\", function () {",
+											"    pm.expect(pm.response.json().returnedAt).to.not.be.null;",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/borrows/{{active_borrow_id}}/return",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"borrows",
+										"{{active_borrow_id}}",
+										"return"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get Notifications",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});"
+										],
+										"type": "text/javascript",
+										"packages": {},
+										"requests": {}
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/appusers/{{queue_user_id}}/notifications",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"appusers",
+										"{{queue_user_id}}",
+										"notifications"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "View Queue for Book",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/books/{{admin_book_id}}/queue",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"books",
+										"{{admin_book_id}}",
+										"queue"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Try Borrowing for Borrow User",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 409\", function () {",
+											"    pm.response.to.have.status(409);",
+											"});"
+										],
+										"type": "text/javascript",
+										"packages": {},
+										"requests": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"bookId\": {{admin_book_id}},\n    \"appUserId\": {{borrower_user_id}},\n    \"borrowDuration\": \"P14D\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/borrows",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"borrows"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Borrow For Queue User",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 201\", function () {",
+											"    pm.response.to.have.status(201);",
+											"});",
+											"var jsonData = pm.response.json();",
+											"pm.collectionVariables.set(\"active_borrow_id\", jsonData.id);"
+										],
+										"type": "text/javascript",
+										"packages": {},
+										"requests": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"bookId\": {{admin_book_id}},\n    \"appUserId\": {{queue_user_id}},\n    \"borrowDuration\": \"P14D\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/borrows",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"borrows"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Process Return",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"pm.test(\"Returned date is set\", function () {",
+											"    pm.expect(pm.response.json().returnedAt).to.not.be.null;",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/borrows/{{active_borrow_id}}/return",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"borrows",
+										"{{active_borrow_id}}",
+										"return"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Reports",
+					"item": [
+						{
+							"name": "User Summary Report",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/report/appuser/summary",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"report",
+										"appuser",
+										"summary"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Book Summary Report",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/report/book/summary",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"report",
+										"book",
+										"summary"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Borrow Summary Report",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/report/borrow/summary",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"report",
+										"borrow",
+										"summary"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			],
+			"auth": {
+				"type": "basic",
+				"basic": [
+					{
+						"key": "password",
+						"value": "{{employee_password}}",
+						"type": "string"
+					},
+					{
+						"key": "username",
+						"value": "{{employee_username}}",
+						"type": "string"
+					}
+				]
+			}
+		},
+		{
+			"name": "3. User",
+			"item": [
+				{
+					"name": "User Actions",
+					"item": [
+						{
+							"name": "Queue Actions",
+							"item": [
+								{
+									"name": "Join Queue",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"if (pm.response.code !== 201) {",
+													"    console.log(\"Join Queue failed. Response: \", pm.response.text());",
+													"}",
+													"pm.test(\"Status code is 201\", function () {",
+													"    pm.response.to.have.status(201);",
+													"});"
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [],
+										"url": {
+											"raw": "{{baseUrl}}/books/{{admin_book_id}}/queue/join",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"books",
+												"{{admin_book_id}}",
+												"queue",
+												"join"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Leave Queue",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"pm.test(\"Status code is 204\", function () {",
+													"    pm.response.to.have.status(204);",
+													"});"
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "DELETE",
+										"header": [],
+										"url": {
+											"raw": "{{baseUrl}}/books/{{admin_book_id}}/queue/leave",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"books",
+												"{{admin_book_id}}",
+												"queue",
+												"leave"
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "Review Actions",
+							"item": [
+								{
+									"name": "Create Review",
+									"event": [
+										{
+											"listen": "prerequest",
+											"script": {
+												"exec": [
+													"// No changes needed"
+												],
+												"type": "text/javascript",
+												"packages": {},
+												"requests": {}
+											}
+										},
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"if (pm.response.code !== 201) {",
+													"    console.log(\"Create Review failed. Response: \", pm.response.text());",
+													"    console.log(\"Current User ID: \", pm.collectionVariables.get(\"current_user_id\"));",
+													"    console.log(\"Book ID: \", pm.collectionVariables.get(\"admin_book_id\"));",
+													"}",
+													"pm.test(\"Status code is 201\", function () {",
+													"    pm.response.to.have.status(201);",
+													"});",
+													"var jsonData = pm.response.json();",
+													"pm.collectionVariables.set(\"active_review_id\", jsonData.id);"
+												],
+												"type": "text/javascript",
+												"packages": {},
+												"requests": {}
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"rating\": 5,\n    \"comment\": \"Great book!\",\n    \"appUserId\": {{borrow_user_id}},\n    \"bookId\": {{admin_book_id}}\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{baseUrl}}/review",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"review"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Get All Reviews",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"pm.test(\"Status code is 200\", function () {",
+													"    pm.response.to.have.status(200);",
+													"});"
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{baseUrl}}/review",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"review"
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "Browse Books",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"pm.test(\"Response is array\", function() {",
+											"    pm.expect(pm.response.json()).to.be.an('array');",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/books",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"books"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Browse Categories",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/categories",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"categories"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Update Profile",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"pm.test(\"Firstname updated\", function() {",
+											"    pm.expect(pm.response.json().firstname).to.eql('Johnny');",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"firstname\": \"Johnny\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/appusers/me",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"appusers",
+										"me"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get Profile",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});"
+										],
+										"type": "text/javascript",
+										"packages": {},
+										"requests": {}
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/appusers/me",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"appusers",
+										"me"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Negative Tests (Security)",
+					"item": [
+						{
+							"name": "User trying to create book (Forbidden)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 403\", function () {",
+											"    pm.response.to.have.status(403);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"title\": \"Malicious Book\",\n    \"count\": 1\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/books",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"books"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "User trying to see all users (Forbidden)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 403\", function () {",
+											"    pm.response.to.have.status(403);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/appusers",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"appusers"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "User trying to create borrow (Forbidden)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 403\", function () {",
+											"    pm.response.to.have.status(403);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"bookId\": 1,\n    \"appUserId\": 1,\n    \"borrowDuration\": \"P14D\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/borrows",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"borrows"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			],
+			"auth": {
+				"type": "basic",
+				"basic": [
+					{
+						"key": "password",
+						"value": "{{borrow_user_password}}",
+						"type": "string"
+					},
+					{
+						"key": "username",
+						"value": "{{borrow_user_username}}",
+						"type": "string"
+					}
+				]
+			},
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {},
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {},
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "employee_id",
+			"value": ""
+		},
+		{
+			"key": "admin_category_id",
+			"value": ""
+		},
+		{
+			"key": "admin_author_id",
+			"value": ""
+		},
+		{
+			"key": "admin_book_id",
+			"value": ""
+		},
+		{
+			"key": "borrower_user_id",
+			"value": ""
+		},
+		{
+			"key": "active_borrow_id",
+			"value": ""
+		},
+		{
+			"key": "active_review_id",
+			"value": ""
+		},
+		{
+			"key": "current_user_id",
+			"value": ""
+		}
+	]
 }

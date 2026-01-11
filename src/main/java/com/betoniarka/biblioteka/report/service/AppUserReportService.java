@@ -63,7 +63,7 @@ public class AppUserReportService {
                                     Instant returnedTime = borrow.getReturnedAt();
                                     Instant expectedReturnTime =
                                             borrow.getBorrowedAt().plus(borrow.getBorrowDuration());
-                                    Duration duration = Duration.between(returnedTime, expectedReturnTime);
+                                    Duration duration = Duration.between(expectedReturnTime, returnedTime);
                                     return duration.isNegative() ? 0 : duration.toDays();
                                 })
                         .sum();
@@ -131,7 +131,8 @@ public class AppUserReportService {
         return userRepository.findAll().stream()
                 .filter(
                         user ->
-                                user.getCurrentBorrows().isEmpty()
+                                !user.getBorrows().isEmpty()
+                                        && user.getCurrentBorrows().isEmpty()
                                         && Duration.between(
                                                 user.getBorrows().getLast().getReturnedAt(), Instant.now(clock))
                                         .toDays()
