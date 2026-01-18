@@ -14,13 +14,11 @@ import java.util.List;
 @RequiredArgsConstructor
 public class NotificationController {
 
-    private final NotificationRepository repository;
-    private final NotificationMapper mapper;
+    private final NotificationService service;
 
     @GetMapping
     public List<NotificationResponseDto> getNotifications(@PathVariable Long id) {
-        var notifications = repository.getNotificationsByAppUser_Id(id);
-        return notifications.stream().map(mapper::toDto).toList();
+        return service.getByUserId(id);
     }
 
 }
