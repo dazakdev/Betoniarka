@@ -11,7 +11,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Locale;
 
 @Service
 @Transactional
@@ -119,7 +118,7 @@ public class BookService {
         for (int index = 0; index < value.length(); index++) {
             var character = value.charAt(index);
             if (Character.isLetterOrDigit(character)) {
-                builder.append(Character.toLowerCase(character, Locale.ROOT));
+                builder.append(Character.toLowerCase(character));
             }
         }
         return builder.toString();
