@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Locale;
 
 @Service
 @Transactional
@@ -22,8 +23,31 @@ public class BookService {
     private final AuthorRepository authorRepository;
     private final BookMapper mapper;
 
-    public List<BookResponseDto> getAll() {
-        return bookRepository.findAll().stream().map(mapper::toDto).toList();
+    public List<BookResponseDto> getAll(String search) {
+        var normalizedSearch = normalizeSearch(search);
+        var books = bookRepository.findAllWithAuthorAndCategories();
+        if (normalizedSearch.isBlank()) {
+            return books.stream().map(mapper::toDto).toList();
+        }
+
+        return books.stream()
+                .filter(
+                        book -> {
+                            var normalizedTitle = normalizeSearch(book.getTitle());
+                            if (normalizedTitle.startsWith(normalizedSearch)) return true;
+
+                            var author = book.getAuthor();
+                            if (author != null) {
+                                var normalizedAuthor = normalizeSearch(author.getName());
+                                if (normalizedAuthor.startsWith(normalizedSearch)) return true;
+                            }
+
+                            return book.getCategories().stream()
+                                    .map(category -> normalizeSearch(category.getName()))
+                                    .anyMatch(categoryName -> categoryName.equals(normalizedSearch));
+                        })
+                .map(mapper::toDto)
+                .toList();
     }
 
     public BookResponseDto getById(Long id) {
@@ -87,5 +111,17 @@ public class BookService {
             throw new ResourceNotFoundException("Book with id '%d' not found".formatted(id));
 
         bookRepository.deleteById(id);
+    }
+
+    private static String normalizeSearch(String value) {
+        if (value == null) return "";
+        var builder = new StringBuilder(value.length());
+        for (int index = 0; index < value.length(); index++) {
+            var character = value.charAt(index);
+            if (Character.isLetterOrDigit(character)) {
+                builder.append(Character.toLowerCase(character, Locale.ROOT));
+            }
+        }
+        return builder.toString();
     }
 }
