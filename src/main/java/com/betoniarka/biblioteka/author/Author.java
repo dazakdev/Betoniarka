@@ -6,7 +6,9 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
 @Entity
 @Table(name = "author")
@@ -26,7 +28,8 @@ public class Author {
     @OneToMany(mappedBy = "author")
     private List<Book> books = new ArrayList<>();
 
-    public Author() {}
+    public Author() {
+    }
 
     @Override
     public boolean equals(Object o) {
@@ -39,5 +42,4 @@ public class Author {
     public int hashCode() {
         return Objects.hash(id, name);
     }
-
 }

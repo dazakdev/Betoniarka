@@ -6,28 +6,34 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
 @Entity
 @Table(name = "category")
 public class Category {
 
     @Getter
+    @ManyToMany(mappedBy = "categories")
+    private final List<Book> books = new ArrayList<>();
+    @Getter
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
-
     @Getter
     @Setter
     @Column(unique = true)
     @NotNull(message = "name is required")
     private String name;
 
-    @Getter
-    @ManyToMany(mappedBy = "categories")
-    private List<Book> books = new ArrayList<>();
+    public Category() {
+    }
 
-    public Category() {}
+    // Tests
+    public Category(long id) {
+        this.id = id;
+    }
 
     @Override
     public boolean equals(Object o) {
@@ -40,5 +46,4 @@ public class Category {
     public int hashCode() {
         return Objects.hash(id, name);
     }
-
 }

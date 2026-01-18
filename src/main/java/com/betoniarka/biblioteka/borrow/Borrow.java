@@ -1,7 +1,6 @@
-package com.betoniarka.biblioteka.borrowedbook;
+package com.betoniarka.biblioteka.borrow;
 
 import com.betoniarka.biblioteka.appuser.AppUser;
-import com.betoniarka.biblioteka.author.Author;
 import com.betoniarka.biblioteka.book.Book;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -14,7 +13,7 @@ import java.util.Objects;
 
 @Entity
 @Table(name = "borrowed_book")
-public class BorrowedBook {
+public class Borrow {
 
     @Getter
     @Id
@@ -23,15 +22,20 @@ public class BorrowedBook {
 
     @Getter
     @Setter
-    @Column
-    @NotNull(message = "timestamp is required")
-    private Instant timestamp;
+    @Column(name = "borrowed_at")
+    @NotNull(message = "borrowedAt is required")
+    private Instant borrowedAt;
 
     @Getter
     @Setter
-    @Column(name = "borrowed_time")
-    @NotNull(message = "borrowedTime is required")
-    private Duration borrowedTime;
+    @Column(name = "returned_at")
+    private Instant returnedAt;
+
+    @Getter
+    @Setter
+    @Column(name = "borrow_duration")
+    @NotNull(message = "borrowDuration is required")
+    private Duration borrowDuration;
 
     @Getter
     @Setter
@@ -45,18 +49,26 @@ public class BorrowedBook {
     @JoinColumn(name = "book_id")
     private Book book;
 
-    public BorrowedBook() {}
+    public Borrow() {
+    }
+
+    public Borrow(long id) {
+        this.id = id;
+    }
+
+    public boolean isReturned() {
+        return returnedAt != null;
+    }
 
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
-        BorrowedBook that = (BorrowedBook) o;
-        return id == that.id && timestamp == that.timestamp && borrowedTime == that.borrowedTime;
+        Borrow that = (Borrow) o;
+        return id == that.id && borrowedAt == that.borrowedAt && borrowDuration == that.borrowDuration;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, timestamp, borrowedTime);
+        return Objects.hash(id, borrowedAt, borrowDuration);
     }
-
 }

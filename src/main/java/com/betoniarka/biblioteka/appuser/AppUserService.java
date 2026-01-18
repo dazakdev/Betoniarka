@@ -1,63 +1,112 @@
 package com.betoniarka.biblioteka.appuser;
 
-import org.springframework.stereotype.Service;
+import com.betoniarka.biblioteka.appuser.dto.*;
+import com.betoniarka.biblioteka.exceptions.ResourceConflictException;
+import com.betoniarka.biblioteka.exceptions.ResourceNotFoundException;
+import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
+@Transactional
+@RequiredArgsConstructor
 public class AppUserService {
 
     private final AppUserRepository repository;
+    private final AppUserMapper mapper;
     private final PasswordEncoder passwordEncoder;
 
-    public AppUserService(AppUserRepository repository, PasswordEncoder passwordEncoder) {
-        this.repository = repository;
-        this.passwordEncoder = passwordEncoder;
+    public List<AppUserResponseDto> getAll() {
+        return repository.findAll().stream().map(mapper::toDto).toList();
     }
 
-    public List<AppUser> getAll() {
-        return repository.findAll();
+    public AppUserResponseDto getById(Long id) {
+        return repository
+                .findById(id)
+                .map(mapper::toDto)
+                .orElseThrow(
+                        () -> new ResourceNotFoundException("AppUser with id '%d' not found".formatted(id)));
     }
 
-    public Optional<UserResponseDto> create(UserCreateRequestDto requestDto) {
-        AppUser user = new AppUser();
-        user.setUsername(requestDto.username());
-        user.setEmail(requestDto.email());
-        user.setPassword(passwordEncoder.encode(requestDto.password()));
-        user.setRole(AppRole.APP_USER);
+    public AppUserResponseDto create(AppUserCreateDto createDto) {
+        if (repository.existsByUsername(createDto.username()))
+            throw new ResourceConflictException(
+                    "AppUser with username '%s' already exists".formatted(createDto.username()));
 
-        AppUser saved = repository.save(user);
-        return Optional.of(toDto(saved));
+        if (repository.existsByEmail(createDto.email()))
+            throw new ResourceConflictException(
+                    "AppUser with email '%s' already exists".formatted(createDto.email()));
+
+        var entityToSave = mapper.toEntity(createDto);
+        entityToSave.setPassword(passwordEncoder.encode(createDto.password()));
+        var savedEntity = repository.save(entityToSave);
+        return mapper.toDto(savedEntity);
     }
 
-    public Optional<UserResponseDto> update(UserUpdateAppUserDto requestDto) {
-        Optional<AppUser> appUser = repository.findById(requestDto.id());
-        appUser.ifPresent(appUser1 -> {
-            appUser1.setUsername(requestDto.username());
-            appUser1.setEmail(requestDto.email());
-            appUser1.setPassword(passwordEncoder.encode(requestDto.password()));
-            appUser1.setFirstname(requestDto.firstname());
-            appUser1.setLastname(requestDto.lastname());
-            repository.save(appUser1);
-        });
-        return appUser.map(this::toDto);
+    public AppUserResponseDto adminUpdate(Long id, AppUserAdminUpdateDto updateDto) {
+        if (updateDto.username() != null
+                && repository.existsByUsernameAndIdNot(updateDto.username(), id))
+            throw new ResourceConflictException(
+                    "AppUser with username '%s' already exists".formatted(updateDto.username()));
+
+        if (updateDto.email() != null && repository.existsByEmailAndIdNot(updateDto.email(), id))
+            throw new ResourceConflictException(
+                    "AppUser with email '%s' already exists".formatted(updateDto.email()));
+
+        var existingEntity =
+                repository
+                        .findById(id)
+                        .orElseThrow(
+                                () ->
+                                        new ResourceNotFoundException("AppUser with id '%d' not found".formatted(id)));
+
+        mapper.update(updateDto, existingEntity, passwordEncoder.encode(updateDto.password()));
+        var savedEntity = repository.save(existingEntity);
+        return mapper.toDto(savedEntity);
     }
 
-    public void delete(Long id) {
+    public void deleteById(Long id) {
+        if (!repository.existsById(id))
+            throw new ResourceNotFoundException("AppUser with id '%d' not found".formatted(id));
         repository.deleteById(id);
     }
 
-    public UserResponseDto toDto(AppUser user) {
-        return new UserResponseDto(
-                user.getId(),
-                user.getUsername(),
-                user.getFirstname(),
-                user.getLastname(),
-                user.getEmail(),
-                user.getRole().name()
-        );
+    public AppUserResponseDto register(AppUserRegisterDto registerDto) {
+        return create(mapper.toCreateDto(registerDto));
     }
 
+    public AppUserResponseDto nonAdminUpdate(String username, AppUserUpdateDto updateDto) {
+        var existingEntity =
+                repository
+                        .findByUsername(username)
+                        .orElseThrow(
+                                () ->
+                                        new ResourceNotFoundException(
+                                                "AppUser with username '%s' not found".formatted(username)));
+        return adminUpdate(existingEntity.getId(), mapper.toAdminUpdateDto(updateDto));
+    }
+
+    public AppUserResponseDto getByUsername(String username) {
+        return repository
+                .findByUsername(username)
+                .map(mapper::toDto)
+                .orElseThrow(
+                        () ->
+                                new ResourceNotFoundException(
+                                        "AppUser with username '%s' not found".formatted(username)));
+    }
+
+    public void deleteByUsername(String username) {
+        deleteById(
+                repository
+                        .findByUsername(username)
+                        .orElseThrow(
+                                () ->
+                                        new ResourceNotFoundException(
+                                                "AppUser with username '%s' not found".formatted(username)))
+                        .getId());
+    }
 }

@@ -1,288 +1,162 @@
 # System do obsługi biblioteki
 
-Aplikacja webowa oparta o Spring Boot, służąca do obsługi biblioteki: zarządzania czytelnikami, książkami, autorami, kategoriami oraz procesem wypożyczania (w tym kolejkami do książek). Dokumentacja poniżej opisuje stan faktyczny na podstawie kodu w pakiecie `com.betoniarka.biblioteka`.
+Aplikacja webowa (REST) oparta o Spring Boot do obsługi biblioteki: użytkownicy, książki, autorzy, kategorie, wypożyczenia, kolejki, recenzje oraz raporty.
 
----
+## Technologie
 
-## 1. Cel i założenia projektu
+- Java `25` (Gradle toolchain)
+- Spring Boot `4.0.0` + Spring MVC
+- Spring Data JPA + baza H2 (in-memory)
+- Spring Security (HTTP Basic) + autoryzacja ról przez `@PreAuthorize`
+- MapStruct + Lombok
+- OpenAPI/Swagger UI (`org.springdoc:springdoc-openapi-starter-webmvc-ui`)
 
-Temat projektu: **System do obsługi biblioteki**
+## Uruchomienie
 
-Zakładane funkcjonalności:
-- wprowadzanie nowego czytelnika (imię, nazwisko, email, login, hasło) z walidacją danych,
-- różne uprawnienia użytkowników (czytelnik, pracownik, administrator),
-- zarządzanie książkami (CRUD) z kategoryzacją,
-- możliwość przypisania książki do wielu kategorii,
-- obsługa kolejki chętnych do wypożyczenia książki,
-- ograniczenie maksymalnej liczby wypożyczonych książek na użytkownika,
-- wyszukiwanie, polecanie i statystyki (planowane w dalszych iteracjach).
+- Testy: `./gradlew test`
+- Uruchomienie aplikacji: `./gradlew bootRun`
+- Jeżeli środowisko blokuje zapis do `~/.gradle`, ustaw: `GRADLE_USER_HOME="$(pwd)/.gradle"`
 
----
+## Konfiguracja
 
-## 2. Model domenowy (stan na M1)
+- Baza danych: `src/main/resources/application.properties`
+  - `spring.datasource.url=jdbc:h2:mem:biblioteka-db`
+  - `spring.jpa.show-sql=true`
+- Czas w serwisach jest wstrzykiwany przez `java.time.Clock` (bean Springa) w `src/main/java/com/betoniarka/biblioteka/config/TimeConfiguration.java` jako `Clock.systemUTC()`.
+- Automatyczne wypożyczenie z kolejki: `library.queue.autoBorrowDurationDays` (domyślnie `14`).
 
-W projekcie zaimplementowano kompletny model obiektowy i bazodanowy dla kluczowych pojęć biblioteki. Wszystkie encje są mapowane przy użyciu JPA.
+## Dane startowe (seed)
 
-### 2.1 Użytkownik systemu – `AppUser`
+`src/main/java/com/betoniarka/biblioteka/config/DataSeeder.java` przy starcie aplikacji:
 
-Plik: `src/main/java/com/betoniarka/biblioteka/appuser/AppUser.java`
+- tworzy domyślnego admina: login/hasło `admin/admin` (jeśli nie istnieje),
+- seeduje przykładowe kategorie (jeśli tabela `category` jest pusta).
 
-Reprezentuje dowolnego użytkownika systemu (czytelnik, pracownik, admin).
+## Bezpieczeństwo (auth)
 
-Najważniejsze pola:
-- `id` – klucz główny,
-- `username` – unikalny login (wymagany),
-- `password` – hasło (wymagane, przechowywane po zakodowaniu),
-- `firstname`, `lastname` – imię i nazwisko,
-- `email` – unikalny adres email (wymagany),
-- `role` – rola użytkownika (enum `AppRole`).
+- Mechanizm: HTTP Basic (Spring Security).
+- Publiczne endpointy (bez logowania): `POST /auth/register`, `GET /auth/login`, `GET /v3/api-docs/**`, `GET /swagger-ui/**`, `GET /swagger-ui.html`.
+- Wszystkie pozostałe endpointy wymagają uwierzytelnienia.
+- Role aplikacyjne: `src/main/java/com/betoniarka/biblioteka/appuser/AppUserRole.java` (`APP_USER`, `EMPLOYEE`, `ADMIN`).
 
-Relacje:
-- `borrowedBooks` – lista wypożyczonych książek (`BorrowedBook`) - jeden do wielu,
-- `queuedBooks` – wpisy użytkownika w kolejkach do książek (`QueueEntry`) - jeden do wielu,
-- `reviews` – recenzje wystawione przez użytkownika (`Review`) - jeden do wielu.
+Przykład wywołania z Basic Auth:
 
-### 2.2 Role użytkowników – `AppRole`
+```bash
+curl -u admin:admin http://localhost:8080/books
+```
 
-Plik: `src/main/java/com/betoniarka/biblioteka/appuser/AppRole.java`
+## API (kontrolery)
+
+Poniżej ścieżki i operacje zgodne z kodem kontrolerów w `src/main/java/com/betoniarka/biblioteka/**`.
+
+### Auth (`/auth`)
+
+- `POST /auth/register` – rejestracja użytkownika (`AppUserRegisterDto`), rola ustawiana na `APP_USER`.
+- `GET /auth/login` – test logowania (zwraca nazwę zalogowanego użytkownika).
+
+### Użytkownicy (`/appusers`)
+
+- `GET /appusers` – lista użytkowników (`ADMIN`, `EMPLOYEE`)
+- `GET /appusers/{id}` – szczegóły użytkownika (`ADMIN`, `EMPLOYEE`)
+- `POST /appusers` – utworzenie użytkownika (`ADMIN`)
+- `PATCH /appusers/{id}` – aktualizacja użytkownika (adminowa) (`ADMIN`)
+- `DELETE /appusers/{id}` – usunięcie użytkownika (wymaga zalogowania; brak `@PreAuthorize` w kodzie)
+- `PATCH /appusers/me` – aktualizacja własnego konta (wymaga zalogowania)
+- `DELETE /appusers/me` – usunięcie własnego konta (wymaga zalogowania)
+
+### Książki (`/books`)
+
+- `GET /books` – lista książek (wymaga zalogowania)
+- `GET /books/{id}` – szczegóły książki (wymaga zalogowania)
+- `POST /books` – dodanie książki (`ADMIN`, `EMPLOYEE`)
+- `PATCH /books/{id}` – aktualizacja książki (`ADMIN`, `EMPLOYEE`)
+- `DELETE /books/{id}` – usunięcie książki (`ADMIN`, `EMPLOYEE`)
+
+### Autorzy (`/authors`)
+
+- `GET /authors` – lista autorów (wymaga zalogowania)
+- `GET /authors/{id}` – szczegóły autora (wymaga zalogowania)
+- `POST /authors` – dodanie autora (`ADMIN`, `EMPLOYEE`)
+- `PATCH /authors/{id}` – aktualizacja autora (`ADMIN`, `EMPLOYEE`)
+- `DELETE /authors/{id}` – usunięcie autora (`ADMIN`, `EMPLOYEE`)
+
+### Kategorie (`/categories`)
+
+- `GET /categories` – lista kategorii (wymaga zalogowania)
+- `GET /categories/{id}` – szczegóły kategorii (wymaga zalogowania)
+- `POST /categories` – dodanie kategorii (`ADMIN`, `EMPLOYEE`)
+- `PATCH /categories/{id}` – aktualizacja kategorii (`ADMIN`, `EMPLOYEE`)
+- `DELETE /categories/{id}` – usunięcie kategorii (`ADMIN`, `EMPLOYEE`)
+
+### Wypożyczenia (`/borrows`)
+
+- `GET /borrows` – lista wypożyczeń (`ADMIN`, `EMPLOYEE`)
+- `GET /borrows/{id}` – szczegóły wypożyczenia (`ADMIN`, `EMPLOYEE`)
+- `POST /borrows` – wypożyczenie książki (`ADMIN`, `EMPLOYEE`)
+- `PATCH /borrows/{id}` – aktualizacja wypożyczenia (`ADMIN`, `EMPLOYEE`)
+- `POST /borrows/{id}/return` – zwrot książki (`ADMIN`, `EMPLOYEE`); po zwrocie uruchamia auto-wypożyczenie z kolejki (jeżeli są chętni).
+
+### Kolejka do książki (`/books/{bookId}/queue`)
+
+- `GET /books/{bookId}/queue` – podgląd kolejki (`ADMIN`, `EMPLOYEE`)
+- `POST /books/{bookId}/queue/join` – dołączenie do kolejki (`APP_USER`)
+- `DELETE /books/{bookId}/queue/leave` – opuszczenie kolejki (`APP_USER`)
+
+### Recenzje (`/review`)
+
+- `GET /review` – lista recenzji (wymaga zalogowania)
+- `GET /review/{id}` – szczegóły recenzji (wymaga zalogowania)
+- `POST /review` – dodanie recenzji (wymaga zalogowania)
+- `PATCH /review/{id}` – aktualizacja recenzji (wymaga zalogowania)
+- `DELETE /review/{id}` – usunięcie recenzji (wymaga zalogowania)
+
+### Raporty (`/report/**`)
+
+- `/report/appuser/*` – raporty użytkowników (`ADMIN`, `EMPLOYEE`)
+  - `GET /report/appuser/summary`
+  - `GET /report/appuser/overdue`
+  - `GET /report/appuser/most-active?limit=10`
+  - `GET /report/appuser/dead?days=100`
+- `/report/book/*` – raporty książek (`ADMIN`, `EMPLOYEE`)
+  - `GET /report/book/summary`
+  - `GET /report/book/availability`
+  - `GET /report/book/most-reviewed?limit=10`
+  - `GET /report/book/most-popular-categories?limit=10`
+- `/report/borrow/*` – raporty wypożyczeń (`ADMIN`, `EMPLOYEE`)
+  - `GET /report/borrow/summary`
+  - `GET /report/borrow/most-borrowed?limit=10&from=<Instant>&to=<Instant>`
+
+## Model domenowy (encje)
+
+Encje i relacje (JPA) znajdują się w `src/main/java/com/betoniarka/biblioteka/**`:
+
+- `AppUser` (`app_user`)
+  - relacje: `borrows` (1..N do `Borrow`), `queuedBooks` (1..N do `QueueEntry`), `reviews` (1..N do `Review`)
+  - reguły domenowe:
+    - limit aktywnych wypożyczeń: maks. 3 (`getCurrentBorrows()`)
+    - blokada wypożyczenia tej samej książki drugi raz (gdy wypożyczenie aktywne)
+    - blokada wypożyczenia, gdy inny użytkownik jest pierwszy w kolejce dla danej książki
+- `Book` (`book`)
+  - pola: `title` (unikalny), `count` (liczba dostępnych egzemplarzy)
+  - relacje: `author` (N..1), `categories` (N..N), `borrowedBy` (1..N), `queue` (1..N), `reviews` (1..N)
+- `Author` (`author`)
+  - relacja: `books` (1..N)
+- `Category` (`category`)
+  - relacja: `books` (N..N)
+- `Borrow` (`borrowed_book`)
+  - pola: `borrowedAt`, `returnedAt`, `borrowDuration`
+  - relacje: `appUser` (N..1), `book` (N..1)
+- `QueueEntry` (`queue_entry`)
+  - unikalność: `(app_user_id, book_id)` (jeden wpis w kolejce per użytkownik i książka)
+  - pole `timestamp` ustawiane w `QueueEntryService` przez `Instant.now(clock)`
+- `Review` (`review`)
+  - reguły domenowe w `AppUser.addReview(...)`:
+    - recenzję można dodać tylko dla książki, którą użytkownik kiedykolwiek wypożyczył
+    - użytkownik może dodać tylko jedną recenzję per książka
+
+## Dokumentacja interfejsu
+
+- Swagger UI: `/swagger-ui/`
+- OpenAPI JSON: `/v3/api-docs`
+- Postman: kolekcja i środowisko w `postman/Biblioteka_Collection.json` oraz `postman/Biblioteka_Environment.json`
 
-Enum określający uprawnienia:
-- `APP_USER` – zwykły czytelnik,
-- `EMPLOYEE` – pracownik biblioteki,
-- `ADMIN` – administrator systemu.
-
-Rola jest używana w module bezpieczeństwa do nadawania uprawnień (`ROLE_APP_USER`, `ROLE_EMPLOYEE`, `ROLE_ADMIN`).
-
-### 2.3 Książka – `Book`
-
-Plik: `src/main/java/com/betoniarka/biblioteka/book/Book.java`
-
-Reprezentuje książkę dostępną w bibliotece.
-
-Najważniejsze pola:
-- `id`,
-- `title` – unikalny tytuł (wymagany),
-- `count` – liczba dostępnych egzemplarzy (wymagana).
-
-Relacje:
-- `categories` – lista kategorii (`Category`) – wiele do wielu,
-- `author` – jeden autor (`Author`) - wiele do jednego,
-- `borrowedBy` – wypożyczenia tej książki (`BorrowedBook`) - jeden do wielu,
-- `queue` – kolejka do tej książki (`QueueEntry`) - jeden do wielu,
-- `reviews` – recenzje książki (`Review`) - jeden do wielu.
-
-Model spełnia wymagania:
-- książka może należeć do wielu kategorii,
-- na podstawie `count` i powiązań `BorrowedBook` można ograniczać liczbę aktywnych wypożyczeń.
-
-### 2.4 Kategoria – `Category`
-
-Plik: `src/main/java/com/betoniarka/biblioteka/category/Category.java`
-
-Reprezentuje kategorię tematyczną książek.
-
-Pola:
-- `id`,
-- `name` – unikalna nazwa kategorii (wymagana).
-
-Relacje:
-- `books` – lista książek w tej kategorii - wiele do wielu.
-
-### 2.5 Autor – `Author`
-
-Plik: `src/main/java/com/betoniarka/biblioteka/author/Author.java`
-
-Reprezentuje autora książek.
-
-Pola:
-- `id`,
-- `name` – nazwa/imie i nazwisko autora (wymagane).
-
-Relacje:
-- `books` – lista książek napisanych przez danego autora - jeden do wielu.
-
-### 2.6 Wypożyczona książka – `BorrowedBook`
-
-Plik: `src/main/java/com/betoniarka/biblioteka/borrowedbook/BorrowedBook.java`
-
-Reprezentuje pojedyncze wypożyczenie egzemplarza książki przez użytkownika.
-
-Pola:
-- `id`,
-- `timestamp` – czas wypożyczenia (wymagany),
-- `borrowedTime` – czas trwania wypożyczenia (wymagane).
-
-Relacje:
-- `appUser` – użytkownik, który wypożyczył książkę - wiele do jednego,
-- `book` – wypożyczona książka - wiele do jednego.
-
-Na bazie tej encji możliwe jest:
-- liczenie aktualnej liczby wypożyczeń użytkownika (limit x książek),
-- wyliczanie statystyk (najczęściej wypożyczane książki, aktywność).
-
-### 2.7 Kolejka do książki – `QueueEntry`
-
-Plik: `src/main/java/com/betoniarka/biblioteka/queueentry/QueueEntry.java`
-
-Reprezentuje zapis użytkownika w kolejce do wypożyczania konkretnej książki.
-
-Pola:
-- `id`,
-- `timestamp` – moment zapisania się do kolejki (wymagany).
-
-Relacje:
-- `appUser` – użytkownik oczekujący w kolejce - wiele do jednego,
-- `book` – książka, na którą czeka - wiele do jednego.
-
-### 2.8 Recenzja – `Review`
-
-Plik: `src/main/java/com/betoniarka/biblioteka/review/Review.java`
-
-Reprezentuje ocenę książki wystawioną przez użytkownika.
-
-Pola:
-- `id`,
-- `rating` – ocena (wymagana),
-- `comment` – opcjonalny komentarz.
-
-Relacje:
-- `appUser` – użytkownik wystawiający recenzję - wiele do jednego,
-- `book` – oceniana książka - wiele do jednego.
-
----
-
-## 3. Warstwa REST – użytkownicy (M1)
-
-W M1 skupiono się na pełnym CRUD i rejestracji użytkownika poprzez REST.
-
-### 3.1 DTO do tworzenia użytkownika – `UserCreateRequestDto`
-
-Plik: `src/main/java/com/betoniarka/biblioteka/appuser/UserCreateRequestDto.java`
-
-Reprezentuje dane wejściowe przy rejestracji:
-- `username` – wymagany,
-- `email` – wymagany, poprawny adres email,
-- `password` – wymagane hasło.
-
-Pola są walidowane adnotacjami `@NotBlank` i `@Email`.
-
-### 3.2 DTO do aktualizacji użytkownika – `UserUpdateAppUserDto`
-
-Plik: `src/main/java/com/betoniarka/biblioteka/appuser/UserUpdateAppUserDto.java`
-
-Pola:
-- `id` – identyfikator aktualizowanego użytkownika,
-- `username`,
-- `firstname`,
-- `lastname`,
-- `email`,
-- `password`.
-
-Umożliwia modyfikację danych użytkownika w jednym żądaniu.
-
-### 3.3 DTO odpowiedzi – `UserResponseDto`
-
-Plik: `src/main/java/com/betoniarka/biblioteka/appuser/UserResponseDto.java`
-
-Zwracany klientowi przy operacjach na użytkownikach:
-- `appUserId`,
-- `username`,
-- `firstname`,
-- `lastname`,
-- `email`,
-- `appRole`.
-
-### 3.4 Serwis użytkowników – `AppUserService`
-
-Plik: `src/main/java/com/betoniarka/biblioteka/appuser/AppUserService.java`
-
-Odpowiada za logikę biznesową użytkowników:
-- `getAll()` – pobiera listę wszystkich użytkowników,
-- `create(UserCreateRequestDto)` – tworzy nowego użytkownika:
-  - koduje hasło przy użyciu `PasswordEncoder`,
-  - ustawia domyślną rolę `APP_USER`,
-  - zapisuje użytkownika w bazie,
-  - zwraca `UserResponseDto`,
-- `update(UserUpdateAppUserDto)` – aktualizuje dane istniejącego użytkownika (w tym hasło),
-- `delete(Long id)` – usuwa użytkownika po identyfikatorze,
-- `toDto(AppUser)` – konwertuje encję na DTO odpowiedzi.
-
-Repozytorium: `AppUserRepository` (rozszerza `JpaRepository<AppUser, Long>`) zapewnia podstawowe operacje CRUD oraz wyszukiwanie po `username`.
-
-### 3.5 Kontroler użytkowników – `AppUserController`
-
-Plik: `src/main/java/com/betoniarka/biblioteka/appuser/AppUserController.java`
-
-Wystawia REST API pod ścieżką `/appusers`:
-- `GET /appusers` – odczyt listy użytkowników,
-- `POST /appusers` – tworzenie nowego użytkownika,
-- `PUT /appusers` – aktualizacja danych użytkownika,
-- `DELETE /appusers` – usuwanie użytkownika (na podstawie przekazanego `id`).
-
-Walidacja wejścia odbywa się poprzez `@Valid` na DTO.
-
----
-
-## 4. Rejestracja, logowanie i bezpieczeństwo (autentykacja/autoryzacja)
-
-### 4.1 Rejestracja i logowanie – `AuthController`
-
-Plik: `src/main/java/com/betoniarka/biblioteka/auth/AuthController.java`
-
-Endpointy:
-- `POST /auth/register` – rejestracja użytkownika:
-  - przyjmuje `UserCreateRequestDto` i deleguje tworzenie do `AppUserService`,
-  - jest publicznie dostępny (brak wymogu logowania),
-- `GET /auth/login` – logowanie:
-  - wykorzystuje standardową autentykację Spring Security (HTTP Basic),
-  - zwraca informację o zalogowanym użytkowniku (`authentication.getName()`).
-
-### 4.2 Integracja z Spring Security – `SecurityConfig`
-
-Plik: `src/main/java/com/betoniarka/biblioteka/security/SecurityConfig.java`
-
-Najważniejsze elementy:
-- Bean `PasswordEncoder` (`BCryptPasswordEncoder`) – do bezpiecznego przechowywania haseł,
-- Konfiguracja endpointów:
-  - endpointy publiczne (nie wymagające uwierzytelnienia):
-    - `/auth/register`,
-    - `/auth/login`,
-    - `/v3/api-docs/**`, `/swagger-ui/**`, `/swagger-ui.html`,
-  - pozostałe żądania wymagają uwierzytelnienia,
-
-### 4.3 Szczegóły użytkownika w Security – `AppUserDetails` i `AppUserDetailsService`
-
-Pliki:
-- `src/main/java/com/betoniarka/biblioteka/security/AppUserDetails.java`
-- `src/main/java/com/betoniarka/biblioteka/security/AppUserDetailsService.java`
-
-Funkcje:
-- `AppUserDetails` implementuje `UserDetails`:
-  - zwraca login, hasło oraz kolekcję uprawnień (`GrantedAuthority`) na podstawie roli (`ROLE_<nazwa_roli>`),
-- `AppUserDetailsService` implementuje `UserDetailsService`:
-  - w metodzie `loadUserByUsername` wyszukuje użytkownika po `username` w `AppUserRepository`,
-  - jeśli użytkownik nie zostanie znaleziony, rzucany jest `UsernameNotFoundException`.
-
-Razem zapewniają one integrację encji `AppUser` z mechanizmem autentykacji i autoryzacji Spring Security.
-
----
-
-## 5. Zgodność z wymaganiami M1
-
-Zgodnie z założeniami M1:
-
-- **Kompletny model:**
-  - obiektowy – encje `AppUser`, `Book`, `Category`, `Author`, `BorrowedBook`, `QueueEntry`, `Review` odzwierciedlają kluczowe pojęcia systemu biblioteki,
-  - bazodanowy – wszystkie encje są zmapowane na tabele JPA z relacjami (w tym wiele–do–wielu dla książek i kategorii).
-
-- **Rejestracja użytkownika (REST):**
-  - zaimplementowana przez `AuthController` (`POST /auth/register`) i `AppUserService.create`.
-
-- **Operacje CRUD na użytkownikach:**
-  - tworzenie, odczyt, modyfikacja i usuwanie użytkowników za pośrednictwem `AppUserController` i `AppUserService`.
-
-- **Autentykacja i autoryzacja:**
-  - integracja Spring Security z encją `AppUser`,
-  - publiczne endpointy rejestracji/logowania,
-  - ochrona pozostałych zasobów,
-  - role użytkowników mapowane na uprawnienia (możliwość dalszego doprecyzowania reguł dostępu).

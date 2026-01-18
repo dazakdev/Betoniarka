@@ -1,6 +1,6 @@
 package com.betoniarka.biblioteka.appuser;
 
-public enum AppRole {
+public enum AppUserRole {
     APP_USER,
     ADMIN,
     EMPLOYEE

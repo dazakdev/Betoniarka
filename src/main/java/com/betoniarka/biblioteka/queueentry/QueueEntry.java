@@ -11,7 +11,9 @@ import java.time.Instant;
 import java.util.Objects;
 
 @Entity
-@Table(name = "queue_entry")
+@Table(
+        name = "queue_entry",
+        uniqueConstraints = {@UniqueConstraint(columnNames = {"app_user_id", "book_id"})})
 public class QueueEntry {
 
     @Getter
@@ -37,7 +39,8 @@ public class QueueEntry {
     @JoinColumn(name = "book_id")
     private Book book;
 
-    public QueueEntry() {}
+    public QueueEntry() {
+    }
 
     @Override
     public boolean equals(Object o) {
@@ -50,5 +53,4 @@ public class QueueEntry {
     public int hashCode() {
         return Objects.hash(id, timestamp);
     }
-
 }

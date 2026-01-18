@@ -1,3 +1,13 @@
+# postman
+postman/*
+!postman/Biblioteka_Collection.json
+!postman/Biblioteka_Environment.json
+.postman
+
+# h2
+biblioteka-db*
+data.*
+
 HELP.md
 .gradle
 build/

@@ -30,16 +30,24 @@ public class Review {
     private String comment;
 
     @Getter
+    @Setter
     @ManyToOne
     @JoinColumn(name = "app_user_id")
     private AppUser appUser;
 
     @Getter
+    @Setter
     @ManyToOne
     @JoinColumn(name = "book_id")
     private Book book;
 
-    public Review() {}
+    public Review() {
+    }
+
+    // Tests
+    public Review(long id) {
+        this.id = id;
+    }
 
     @Override
     public boolean equals(Object o) {
@@ -52,5 +60,4 @@ public class Review {
     public int hashCode() {
         return Objects.hash(id, rating, comment);
     }
-
 }
