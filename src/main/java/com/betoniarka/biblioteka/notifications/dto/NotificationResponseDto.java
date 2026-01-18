@@ -1,4 +1,4 @@
 package com.betoniarka.biblioteka.notifications.dto;
 
-public record NotificationResponseDto(long id, String message) {
+public record NotificationResponseDto(long id, String subject, String message) {
 }

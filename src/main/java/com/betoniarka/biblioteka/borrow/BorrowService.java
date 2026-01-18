@@ -87,7 +87,10 @@ public class BorrowService {
         var count = book.getCount();
         try {
             var userToNotify = book.getQueue().get(count - 1).getAppUser();
-            notificationService.create("Book '%s' is available for borrowing".formatted(book.getTitle()), userToNotify);
+            notificationService.create(
+                    "Book available",
+                    "The book '%s' by %s is now available".formatted(book.getTitle(), book.getAuthor().getName()),
+                    userToNotify);
         } catch (Exception ignored) {
         }
 

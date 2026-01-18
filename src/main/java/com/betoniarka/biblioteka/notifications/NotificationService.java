@@ -23,12 +23,12 @@ public class NotificationService {
         return notifications.stream().map(mapper::toDto).toList();
     }
 
-    public NotificationResponseDto create(String message, AppUser appUser) {
-        var notification = new Notification(message);
+    public NotificationResponseDto create(String subject, String message, AppUser appUser) {
+        var notification = new Notification(subject, message);
         appUser.addNotification(notification);
         repository.save(notification);
 
-        emailService.send(appUser.getEmail(), "New Notification", message);
+        emailService.send(appUser.getEmail(), subject, message);
 
         return mapper.toDto(notification);
     }
