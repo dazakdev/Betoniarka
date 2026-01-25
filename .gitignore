@@ -45,3 +45,17 @@ out/
 
 ### VS Code ###
 .vscode/
+
+### Python (tools/seeder) ###
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+.env
+.env.*
+
+# Seeder runtime state
+tools/seeder/seed-state.json

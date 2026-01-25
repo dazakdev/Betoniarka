@@ -1,0 +1,10 @@
+[project]
+name = "seeder"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12.11"
+dependencies = [
+    "faker>=40.1.2",
+    "kagglehub>=0.4.1",
+]
