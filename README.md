@@ -6,22 +6,27 @@ Aplikacja webowa (REST) oparta o Spring Boot do obsługi biblioteki: użytkownic
 
 - Java `25` (Gradle toolchain)
 - Spring Boot `4.0.0` + Spring MVC
-- Spring Data JPA + baza H2 (in-memory)
+- Spring Data JPA + PostgreSQL
 - Spring Security (HTTP Basic) + autoryzacja ról przez `@PreAuthorize`
+- Powiadomienia e-mail: `spring-boot-starter-mail` + Mailpit (SMTP + UI)
 - MapStruct + Lombok
 - OpenAPI/Swagger UI (`org.springdoc:springdoc-openapi-starter-webmvc-ui`)
 
 ## Uruchomienie
 
-- Testy: `./gradlew test`
-- Uruchomienie aplikacji: `./gradlew bootRun`
+- Docker (PostgreSQL + Mailpit + aplikacja): `docker compose up --build`
+- Lokalnie:
+  - wymagane: PostgreSQL + SMTP (np. Mailpit)
+  - uruchomienie: `SPRING_PROFILES_ACTIVE=development ./gradlew bootRun`
+- Build: `./gradlew clean build`
 - Jeżeli środowisko blokuje zapis do `~/.gradle`, ustaw: `GRADLE_USER_HOME="$(pwd)/.gradle"`
 
 ## Konfiguracja
 
-- Baza danych: `src/main/resources/application.properties`
-  - `spring.datasource.url=jdbc:h2:mem:biblioteka-db`
-  - `spring.jpa.show-sql=true`
+- Profile Springa:
+  - `development`: `src/main/resources/application-development.properties` (DB `localhost:5432`, Mailpit `localhost:1025`)
+  - `production`: `src/main/resources/application-production.properties` (DB `db:5432`, Mailpit `mailpit:1025`, pod `docker compose`)
+- Baza danych (domyślnie): `spring.jpa.hibernate.ddl-auto=update`
 - Czas w serwisach jest wstrzykiwany przez `java.time.Clock` (bean Springa) w `src/main/java/com/betoniarka/biblioteka/config/TimeConfiguration.java` jako `Clock.systemUTC()`.
 - Automatyczne wypożyczenie z kolejki: `library.queue.autoBorrowDurationDays` (domyślnie `14`).
 
@@ -61,12 +66,13 @@ Poniżej ścieżki i operacje zgodne z kodem kontrolerów w `src/main/java/com/b
 - `POST /appusers` – utworzenie użytkownika (`ADMIN`)
 - `PATCH /appusers/{id}` – aktualizacja użytkownika (adminowa) (`ADMIN`)
 - `DELETE /appusers/{id}` – usunięcie użytkownika (wymaga zalogowania; brak `@PreAuthorize` w kodzie)
+- `GET /appusers/me` – podgląd własnego konta (wymaga zalogowania)
 - `PATCH /appusers/me` – aktualizacja własnego konta (wymaga zalogowania)
 - `DELETE /appusers/me` – usunięcie własnego konta (wymaga zalogowania)
 
 ### Książki (`/books`)
 
-- `GET /books` – lista książek (wymaga zalogowania)
+- `GET /books?search=...` – lista książek (opcjonalne wyszukiwanie; wymaga zalogowania)
 - `GET /books/{id}` – szczegóły książki (wymaga zalogowania)
 - `POST /books` – dodanie książki (`ADMIN`, `EMPLOYEE`)
 - `PATCH /books/{id}` – aktualizacja książki (`ADMIN`, `EMPLOYEE`)
@@ -109,6 +115,10 @@ Poniżej ścieżki i operacje zgodne z kodem kontrolerów w `src/main/java/com/b
 - `POST /review` – dodanie recenzji (wymaga zalogowania)
 - `PATCH /review/{id}` – aktualizacja recenzji (wymaga zalogowania)
 - `DELETE /review/{id}` – usunięcie recenzji (wymaga zalogowania)
+
+### Powiadomienia (`/appusers/{id}/notifications`)
+
+- `GET /appusers/{id}/notifications` – lista powiadomień użytkownika (wymaga zalogowania)
 
 ### Raporty (`/report/**`)
 
@@ -153,6 +163,8 @@ Encje i relacje (JPA) znajdują się w `src/main/java/com/betoniarka/biblioteka/
   - reguły domenowe w `AppUser.addReview(...)`:
     - recenzję można dodać tylko dla książki, którą użytkownik kiedykolwiek wypożyczył
     - użytkownik może dodać tylko jedną recenzję per książka
+- `Notification` (`notifications`)
+  - tworzone w serwisach jako zapis w DB + wysyłka e-mail (SMTP skonfigurowany przez `spring.mail.*`)
 
 ## Dokumentacja interfejsu
 
@@ -160,3 +172,6 @@ Encje i relacje (JPA) znajdują się w `src/main/java/com/betoniarka/biblioteka/
 - OpenAPI JSON: `/v3/api-docs`
 - Postman: kolekcja i środowisko w `postman/Biblioteka_Collection.json` oraz `postman/Biblioteka_Environment.json`
 
+## Narzędzia dev (docker)
+
+- Mailpit UI: `http://localhost:8025` (SMTP: `localhost:1025`)

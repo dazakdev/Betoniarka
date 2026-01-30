@@ -6,8 +6,7 @@ import com.betoniarka.biblioteka.borrow.dto.BorrowCreateDto;
 import com.betoniarka.biblioteka.borrow.dto.BorrowResponseDto;
 import com.betoniarka.biblioteka.borrow.dto.BorrowUpdateDto;
 import com.betoniarka.biblioteka.exceptions.ResourceNotFoundException;
-import com.betoniarka.biblioteka.notifications.Notification;
-import com.betoniarka.biblioteka.notifications.NotificationRepository;
+import com.betoniarka.biblioteka.notifications.NotificationService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -22,8 +21,8 @@ public class BorrowService {
     private final AppUserRepository appUserRepository;
     private final BookRepository bookRepository;
     private final BorrowRepository borrowRepository;
-    private final NotificationRepository notificationRepository;
     private final BorrowMapper mapper;
+    private final NotificationService notificationService;
 
     public List<BorrowResponseDto> getAll() {
         return borrowRepository.findAll().stream().map(mapper::toDto).toList();
@@ -87,11 +86,11 @@ public class BorrowService {
         var book = borrow.getBook();
         var count = book.getCount();
         try {
-            var notification = new Notification("Book '%s' is available for borrowing".formatted(book.getTitle()));
             var userToNotify = book.getQueue().get(count - 1).getAppUser();
-            userToNotify.addNotification(notification);
-            notification.setAppUser(userToNotify);
-            notificationRepository.save(notification);
+            notificationService.create(
+                    "Book available",
+                    "The book '%s' by %s is now available".formatted(book.getTitle(), book.getAuthor().getName()),
+                    userToNotify);
         } catch (Exception ignored) {
         }
 

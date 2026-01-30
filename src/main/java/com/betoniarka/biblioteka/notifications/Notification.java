@@ -19,6 +19,11 @@ public class Notification {
     @Getter
     @Setter
     @Column
+    private String subject;
+
+    @Getter
+    @Setter
+    @Column
     private String message;
 
     @Getter
@@ -30,7 +35,8 @@ public class Notification {
     public Notification() {
     }
 
-    public Notification(String message) {
+    public Notification(String subject, String message) {
+        this.subject = subject;
         this.message = message;
     }
 

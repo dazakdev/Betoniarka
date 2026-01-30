@@ -21,8 +21,8 @@ public class BookController {
     private final BookService service;
 
     @GetMapping
-    public List<BookResponseDto> getBooks() {
-        return service.getAll();
+    public List<BookResponseDto> getBooks(@RequestParam(required = false) String search) {
+        return service.getAll(search);
     }
 
     @GetMapping("/{id}")
